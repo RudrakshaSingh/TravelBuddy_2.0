@@ -4,6 +4,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema({
+  clerk_id: {
+    type: String,
+    required: true,
+  },
   fullName: {
     type: String,
     required: true,
