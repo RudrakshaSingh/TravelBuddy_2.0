@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   clerk_id: {
     type: String,
     required: true,
@@ -71,7 +71,6 @@ const UserSchema = new mongoose.Schema({
         },
       },
     ],
-    required: true,
   },
 
   bio: {
@@ -93,7 +92,6 @@ const UserSchema = new mongoose.Schema({
   },
   nationality: {
     type: String,
-    required: true,
     default: "Not Specified",
   },
 
@@ -156,26 +154,24 @@ const UserSchema = new mongoose.Schema({
 // ----------------------------------------------------
 // 🔐 PRE-SAVE HASH PASSWORD
 // ----------------------------------------------------
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-
-  next();
 });
 
 // ----------------------------------------------------
 // 🔐 COMPARE PASSWORD METHOD
 // ----------------------------------------------------
-UserSchema.methods.comparePassword = async function (enteredPassword) {
+userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // ----------------------------------------------------
 // 🔐 JWT TOKEN GENERATOR
 // ----------------------------------------------------
-UserSchema.methods.generateJwtToken = function () {
+userSchema.methods.generateJwtToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: "7d", // you can change validity
   });
@@ -184,7 +180,9 @@ UserSchema.methods.generateJwtToken = function () {
 // ----------------------------------------------------
 // 🌍 GEOSPATIAL INDEXES
 // ----------------------------------------------------
-UserSchema.index({ currentLocation: "2dsphere" });
-UserSchema.index({ "futureDestinations.location": "2dsphere" });
+userSchema.index({ currentLocation: "2dsphere" });
+userSchema.index({ "futureDestinations.location": "2dsphere" });
 
-export default mongoose.model("User", UserSchema);
+const User = mongoose.model("User", userSchema);
+
+export default User;
