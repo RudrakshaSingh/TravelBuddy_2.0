@@ -1,0 +1,47 @@
+services:
+  backend:
+    build: ./backend
+    image: travelbuddy-backend-image
+    container_name: travelbuddy-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./backend/.env
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Helps with hot reload on Windows
+    # If you want to use the local mongodb service defined below, uncomment the following line
+    # and update your .env or this variable to point to mongodb://mongo:27017/travelbuddy
+    # - MONGO_URI=mongodb://mongo:27017/travelbuddy
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    image: travelbuddy-frontend-image
+    container_name: travelbuddy-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Helps with hot reload on Windows
+    # Link to backend if needed for server-side calls (not usually needed for SPA client-side calls)
+    # environment:
+    #   - VITE_API_BASE_URL=http://localhost:5000
+
+  mongo:
+    image: mongo:latest
+    container_name: travelbuddy-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

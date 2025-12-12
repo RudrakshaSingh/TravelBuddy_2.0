@@ -1,3 +1,4 @@
+import { useUser, useClerk } from '@clerk/clerk-react';
 import  { useState,useEffect, useRef } from 'react';
 import {
   Menu,
@@ -28,14 +29,15 @@ function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const { user } = useUser();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
 //   const currentUser = useSelector((state) => state.userAuth.user);
 const currentUser  = {
-    fullName: 'Amit Kumar',
-    profilePicture: '',
+    fullName: user?.fullName,
+    profilePicture: user?.imageUrl,
     currentLocation: { lat: 28.6139, lng: 77.209 }
   };
   console.log('Current User:', currentUser);
@@ -64,10 +66,13 @@ const currentUser  = {
     setIsProfileMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    // dispatch(logout());
+  const { signOut } = useClerk();
+
+  const handleLogout = async () => {
+    await signOut();
     toast.success('Logout successful');
     setIsProfileMenuOpen(false);
+    navigate('/sign-in');
   };
 
   const handleDeleteAccount = () => {
