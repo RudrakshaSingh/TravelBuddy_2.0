@@ -1,4 +1,4 @@
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, SignedIn, SignedOut } from '@clerk/clerk-react';
 import  { useState,useEffect, useRef } from 'react';
 import {
   Menu,
@@ -19,7 +19,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useClerk, useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
+
 import ReverseGeocode from '../helpers/reverseGeoCode';
 import toast from 'react-hot-toast';
 
@@ -44,6 +44,11 @@ const currentUser  = {
 
   const notificationCount = 3;
 
+  // Derive user display values from Clerk user
+  const userImage = user?.imageUrl;
+  const userDisplayName = user?.fullName || user?.firstName || 'User';
+  const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -66,7 +71,6 @@ const currentUser  = {
     setIsProfileMenuOpen(false);
   };
 
-  const { signOut } = useClerk();
 
   const handleLogout = async () => {
     await signOut();
