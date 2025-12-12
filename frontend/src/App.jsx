@@ -14,6 +14,8 @@ function App() {
        <Route index element={<HomePage />} />
        <Route path="sign-up/*" element={<SignUpPage />} />
        <Route path="sign-in/*" element={<SignInPage />} />
+       <Route path="profile" element={<ProfilePage />} />
+       <Route path="complete-registration" element={<CompleteRegistration />} />
      </Route>
     </Routes>
   );
