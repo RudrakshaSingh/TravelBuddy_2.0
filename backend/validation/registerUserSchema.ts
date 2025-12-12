@@ -3,10 +3,6 @@ import { z } from "zod";
 export const registerUserSchema = z.object({
   clerk_id: z.string().min(1, "Clerk ID is required"),
 
-  fullName: z.string().min(1, "Full name is required"),
-
-  email: z.string().email("Invalid email format"),
-
   mobile: z
     .string()
     .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
@@ -22,3 +18,4 @@ export const registerUserSchema = z.object({
       message: "Gender must be Male, Female, or Other",
     }),
 });
+

@@ -8,7 +8,11 @@ import store from './redux/store.js';
 import { ClerkProvider } from "@clerk/clerk-react";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+  <ClerkProvider 
+    publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+    afterSignInUrl="/complete-registration"
+    afterSignUpUrl="/complete-registration"
+  >
     <Provider store={store}>
       <BrowserRouter>
         <App />

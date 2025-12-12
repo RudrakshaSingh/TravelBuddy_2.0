@@ -13,17 +13,12 @@ export interface IGeoPoint {
 
 export interface IFutureDestination {
   name: string;
-  location: IGeoPoint;
-  startDate?: Date;
-  endDate?: Date;
+  coordinates: number[];
 }
 
 export interface IUser extends Document {
   clerk_id: string;
-  fullName: string;
-  email: string;
   mobile: string;
-  profilePicture?: string;
   dob: Date;
   gender: "Male" | "Female" | "Other";
 
@@ -59,6 +54,5 @@ export interface IUser extends Document {
   JoinActivity?: string[];
 
   createdAt?: Date;
-
-  generateJwtToken(): string; // JWT still supported
 }
+

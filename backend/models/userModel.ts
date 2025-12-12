@@ -1,6 +1,5 @@
 // src/models/user.model.ts
 import mongoose, { Schema } from "mongoose";
-import jwt from "jsonwebtoken";
 import { IUser } from "../interfaces/userInterface";
 
 const geoPointSchema = new Schema({
@@ -10,16 +9,11 @@ const geoPointSchema = new Schema({
 
 const futureDestinationSchema = new Schema({
   name: { type: String },
-  location: geoPointSchema,
-  startDate: Date,
-  endDate: Date,
+  coordinates: { type: [Number], default: [0, 0] },
 });
 
 const userSchema = new Schema<IUser>({
-  clerk_id: { type: String, required: true },
-  fullName: { type: String, required: true },
-
-  email: { type: String, required: true, unique: true },
+  clerk_id: { type: String, required: true, unique: true },
 
   mobile: {
     type: String,
@@ -27,12 +21,6 @@ const userSchema = new Schema<IUser>({
     unique: true,
     minlength: 10,
     maxlength: 10,
-  },
-
-  profilePicture: {
-    type: String,
-    default:
-      "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg",
   },
 
   dob: { type: Date, required: true },
@@ -92,18 +80,9 @@ const userSchema = new Schema<IUser>({
 });
 
 // --------------------------------------
-// 🔐 JWT TOKEN (NO PASSWORD NEEDED)
-// --------------------------------------
-userSchema.methods.generateJwtToken = function (): string {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET!, {
-    expiresIn: "7d",
-  });
-};
-
-// --------------------------------------
 // 🌍 GEO INDEXING
 // --------------------------------------
 userSchema.index({ currentLocation: "2dsphere" });
-userSchema.index({ "futureDestinations.location": "2dsphere" });
+userSchema.index({ "futureDestinations.coordinates": "2dsphere" });
 
 export const User = mongoose.model<IUser>("User", userSchema);

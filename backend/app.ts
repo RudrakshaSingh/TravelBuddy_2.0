@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoute";
 import connectToDB from "./db/db";
+import errorMiddleware from "./middlewares/errorMiddleware";
 
 dotenv.config();
 
@@ -27,5 +28,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/users", userRoutes);
+
+// Global Error Handler
+app.use(errorMiddleware);
 
 export default app;
