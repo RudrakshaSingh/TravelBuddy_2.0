@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import  { useState,useEffect, useRef } from 'react';
 import {
   Menu,
   X,
@@ -27,17 +28,19 @@ function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const { user } = useUser();
 
   const navigate = useNavigate();
   const { signOut } = useClerk();
   const { user: clerkUser, isLoaded, isSignedIn } = useUser();
 
-  // Get user display info from Clerk
-  const userDisplayName = clerkUser?.fullName || 
-    `${clerkUser?.firstName || ''} ${clerkUser?.lastName || ''}`.trim() || 
-    'User';
-  const userEmail = clerkUser?.primaryEmailAddress?.emailAddress;
-  const userImage = clerkUser?.imageUrl;
+//   const currentUser = useSelector((state) => state.userAuth.user);
+const currentUser  = {
+    fullName: user?.fullName,
+    profilePicture: user?.imageUrl,
+    currentLocation: { lat: 28.6139, lng: 77.209 }
+  };
+  console.log('Current User:', currentUser);
 
   const notificationCount = 3;
 
@@ -63,15 +66,13 @@ function NavBar() {
     setIsProfileMenuOpen(false);
   };
 
+  const { signOut } = useClerk();
+
   const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success('Logged out successfully');
-      setIsProfileMenuOpen(false);
-      navigate('/');
-    } catch (error) {
-      toast.error('Failed to logout');
-    }
+    await signOut();
+    toast.success('Logout successful');
+    setIsProfileMenuOpen(false);
+    navigate('/sign-in');
   };
 
   const handleDeleteAccount = () => {

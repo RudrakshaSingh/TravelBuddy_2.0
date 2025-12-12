@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/clerk-react";
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Compass,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import CurrentLocationMap from '../components/currentLocation';
 import { useSelector } from 'react-redux';
+
 
 const heroSlides = [
   {
@@ -72,8 +74,8 @@ const meetupSpots = [
 function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeFeature, setActiveFeature] = useState(0);
-//   const user = useSelector((state) => state.userAuth.user);
-const user  = 'amit'
+const { user,isSignedIn } = useUser();
+console.log('user',user);
 
   useEffect(() => {
     const interval = setInterval(
@@ -111,6 +113,10 @@ const user  = 'amit'
     ],
     []
   );
+
+  if (!isSignedIn) {
+    return <div className="flex justify-center items-center min-h-screen">Please login first.</div>;
+  }
 
   const features = [
     {
