@@ -28,7 +28,13 @@ export default function SignInPage() {
 
         {/* Right Side - Sign In Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-          <SignIn routing="path" path="/sign-in" />
+          <SignIn
+            routing="path"
+            path="/sign-in"
+            forceRedirectUrl="/complete-registration"
+            fallbackRedirectUrl="/complete-registration"
+            signUpUrl="/sign-up"
+          />
         </div>
       </div>
     </div>

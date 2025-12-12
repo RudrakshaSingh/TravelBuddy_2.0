@@ -15,12 +15,13 @@ export const registerUser = asyncHandler(
       throw new ApiError(400, "Invalid input data", errors);
     }
 
-    const { clerk_id, fullName, email, mobile, dob, gender } = parsed.data;
+    const { clerk_id, mobile, dob, gender } = parsed.data;
     const inputDob = new Date(dob);
 
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists by clerk_id
+    const existingUser = await User.findOne({ clerk_id });
     if (existingUser) {
-      throw new ApiError(400, "Email already exists");
+      throw new ApiError(400, "User already registered");
     }
 
     // Verify Clerk ID matches the authenticated user
@@ -31,8 +32,6 @@ export const registerUser = asyncHandler(
 
     const user = await User.create({
       clerk_id,
-      fullName: fullName.trim(),
-      email,
       mobile,
       dob: inputDob,
       gender,
@@ -50,13 +49,9 @@ export const getProfile = asyncHandler(
   }
 );
 
-import uploadOnCloudinary from "../middlewares/cloudinary";
-import deleteFromCloudinaryByUrl from "../middlewares/deleteCloudinary";
-
 export const updateProfile = asyncHandler(
   async (req: Request | any, res: Response, next: NextFunction) => {
     const {
-      fullName,
       mobile,
       dob,
       gender,
@@ -76,10 +71,7 @@ export const updateProfile = asyncHandler(
       throw new ApiError(404, "User not found");
     }
 
-    // 1. Update basic fields if provided
-    if (fullName) user.fullName = fullName.trim();
-    // Email update removed as per requirements
-    // if (email) user.email = email;
+    // Update basic fields if provided
     if (mobile) user.mobile = mobile;
     if (dob) user.dob = new Date(dob);
     if (gender) user.gender = gender;
@@ -87,8 +79,7 @@ export const updateProfile = asyncHandler(
     if (bio) user.bio = bio;
     if (nationality) user.nationality = nationality;
 
-    // 2. Update Array/Object fields
-    // Ensure interests is an array if provided as string or array
+    // Update Array/Object fields
     if (interests) {
         if (typeof interests === "string") {
             try {
@@ -137,44 +128,6 @@ export const updateProfile = asyncHandler(
         }
     }
 
-    // 3. Handle Profile Picture Upload
-    if (req.file) {
-      const localFilePath = req.file.path;
-      const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
-
-      if (cloudinaryResponse && cloudinaryResponse.url) {
-        // Delete old profile picture if it's not the default one
-        const DEFAULT_PROFILE_PICTURE = "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg";
-        
-        if (
-          user.profilePicture &&
-          user.profilePicture !== DEFAULT_PROFILE_PICTURE
-        ) {
-          await deleteFromCloudinaryByUrl(user.profilePicture);
-        }
-
-        user.profilePicture = cloudinaryResponse.url;
-      }
-    }
-
-    // 4. Check Profile Completion
-    // A simple check: ensure required fields and some optional ones are present
-    const isProfileComplete = 
-      !!user.fullName &&
-      !!user.email &&
-      !!user.mobile &&
-      !!user.dob &&
-      !!user.gender &&
-      !!user.travelStyle &&
-      !!user.nationality &&
-      user.nationality !== "Not Specified" &&
-      !!user.bio &&
-      user.bio !== "Not Updated Yet" && 
-      (user.interests && user.interests.length > 0) &&
-      (user.languages && user.languages.length > 0);
-
-      user.profileCompleted = isProfileComplete;
-
     await user.save();
 
     return res
@@ -182,3 +135,6 @@ export const updateProfile = asyncHandler(
       .json(new ApiResponse(200, user, "Profile updated successfully"));
   }
 );
+
+
+

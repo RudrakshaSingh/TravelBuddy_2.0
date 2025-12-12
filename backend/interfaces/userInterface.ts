@@ -18,10 +18,7 @@ export interface IFutureDestination {
 
 export interface IUser extends Document {
   clerk_id: string;
-  fullName: string;
-  email: string;
   mobile: string;
-  profilePicture?: string;
   dob: Date;
   gender: "Male" | "Female" | "Other";
 
@@ -56,9 +53,6 @@ export interface IUser extends Document {
 
   JoinActivity?: string[];
 
-  profileCompleted?: boolean;
-
   createdAt?: Date;
-
-  generateJwtToken(): string; // JWT still supported
 }
+

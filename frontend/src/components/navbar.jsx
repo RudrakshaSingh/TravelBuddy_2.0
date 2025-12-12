@@ -1,4 +1,4 @@
-import  { useState,useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Menu,
   X,
@@ -18,9 +18,8 @@ import {
   Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch,useSelector } from 'react-redux';
+import { useClerk, useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
 import ReverseGeocode from '../helpers/reverseGeoCode';
-// import { logout } from '../redux/slices/userAuthSlice';
 import toast from 'react-hot-toast';
 
 
@@ -30,15 +29,15 @@ function NavBar() {
   const profileMenuRef = useRef(null);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { signOut } = useClerk();
+  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
 
-//   const currentUser = useSelector((state) => state.userAuth.user);
-const currentUser  = {
-    fullName: 'Amit Kumar',
-    profilePicture: '',
-    currentLocation: { lat: 28.6139, lng: 77.209 }
-  };
-  console.log('Current User:', currentUser);
+  // Get user display info from Clerk
+  const userDisplayName = clerkUser?.fullName || 
+    `${clerkUser?.firstName || ''} ${clerkUser?.lastName || ''}`.trim() || 
+    'User';
+  const userEmail = clerkUser?.primaryEmailAddress?.emailAddress;
+  const userImage = clerkUser?.imageUrl;
 
   const notificationCount = 3;
 
@@ -64,14 +63,18 @@ const currentUser  = {
     setIsProfileMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    // dispatch(logout());
-    toast.success('Logout successful');
-    setIsProfileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+      setIsProfileMenuOpen(false);
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
   };
 
   const handleDeleteAccount = () => {
-
     console.log('Delete account clicked');
     setIsProfileMenuOpen(false);
   };
@@ -113,10 +116,10 @@ const currentUser  = {
             </div>
           </button>
 
-          {currentUser && (
+          {isSignedIn && (
             <div className="hidden lg:flex items-center space-x-1 text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
               <MapPin size={24} className="text-amber-600" />
-             <ReverseGeocode lat = {currentUser.currentLocation.lat} lng = {currentUser.currentLocation.lng}/>
+              <span>Your Location</span>
             </div>
           )}
 
@@ -137,7 +140,7 @@ const currentUser  = {
               </button>
             ))}
 
-            {currentUser ? (
+            {isSignedIn ? (
               <div className="flex items-center space-x-4">
                  <button
               onClick={() => handleNavigation('/create-activity')}
@@ -154,11 +157,11 @@ const currentUser  = {
                     className="flex items-center space-x-2 text-gray-700 hover:text-amber-600 transition-colors p-1 rounded-lg hover:bg-gray-50"
                   >
                     <img
-                      src={currentUser.profilePicture ||'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
-                      alt={currentUser.name}
+                      src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
+                      alt={userDisplayName}
                       className="w-8 h-8 rounded-full border-2 border-gray-200 hover:border-amber-600 transition-colors"
                     />
-                    <span className="hidden lg:inline">{currentUser.fullName}</span>
+                    <span className="hidden lg:inline">{userDisplayName}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -169,13 +172,13 @@ const currentUser  = {
                       <div className="px-4 py-3 border-b border-gray-100">
                         <div className="flex items-center space-x-3">
                           <img
-                            src={currentUser.profilePicture ||'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
-                            alt={currentUser.fullName}
+                            src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
+                            alt={userDisplayName}
                             className="w-10 h-10 rounded-full border-2 border-gray-200"
                           />
                           <div>
-                            <p className="font-semibold text-gray-900 text-sm">{currentUser.fullName}</p>
-                            <p className="text-xs text-gray-500">View profile</p>
+                            <p className="font-semibold text-gray-900 text-sm">{userDisplayName}</p>
+                            <p className="text-xs text-gray-500">{userEmail}</p>
                           </div>
                         </div>
                       </div>
@@ -222,13 +225,13 @@ const currentUser  = {
             ) : (
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => handleLogin('/login')}
+                  onClick={() => handleLogin('/sign-in')}
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >
                   Login
                 </button>
                 <button
-                  onClick={() => handleRegister('/register')}
+                  onClick={() => handleRegister('/sign-up')}
                   className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
                 >
                   Join Now
@@ -249,10 +252,10 @@ const currentUser  = {
         {isMenuOpen && (
           <div className="md:hidden mt-2 space-y-1 pb-4 border-t border-gray-100 pt-4">
             {/* Current Location (Mobile) */}
-            {currentUser && (
+            {isSignedIn && (
               <div className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-lg mx-3 mb-3">
                 <MapPin size={14} className="text-blue-500" />
-               <ReverseGeocode lat = {currentUser.currentLocation.lat} lng = {currentUser.currentLocation.lng}/>
+                <span>Your Location</span>
               </div>
             )}
 
@@ -286,7 +289,7 @@ const currentUser  = {
               <span className="font-medium text-center mt-[-1px]">Create Activity</span>
             </button>
 
-            {currentUser ? (
+            {isSignedIn ? (
               <div className="space-y-1 border-t border-gray-100 mx-3 pt-2">
                 {/* Mobile Profile Menu Items */}
                 {profileMenuItems.map((item, index) => (
@@ -340,7 +343,7 @@ const currentUser  = {
               <div className="space-y-2 mt-4 pt-4 border-t border-gray-100 mx-3">
                 <button
                   onClick={() => {
-                    handleLogin('/login');
+                    handleLogin('/sign-in');
                     setIsMenuOpen(false);
                   }}
                   className="block px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium w-full text-left"
@@ -349,12 +352,12 @@ const currentUser  = {
                 </button>
                 <button
                   onClick={() => {
-                    handleRegister('/register');
+                    handleRegister('/sign-up');
                     setIsMenuOpen(false);
                   }}
-                  className="block px-3 py-30 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 font-medium text-center w-full"
+                  className="block px-3 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 font-medium text-center w-full"
                 >
-                  Join TravelConnect
+                  Join TravelBuddy
                 </button>
               </div>
             )}

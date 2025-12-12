@@ -13,10 +13,7 @@ const futureDestinationSchema = new Schema({
 });
 
 const userSchema = new Schema<IUser>({
-  clerk_id: { type: String, required: true },
-  fullName: { type: String, required: true },
-
-  email: { type: String, required: true, unique: true },
+  clerk_id: { type: String, required: true, unique: true },
 
   mobile: {
     type: String,
@@ -24,12 +21,6 @@ const userSchema = new Schema<IUser>({
     unique: true,
     minlength: 10,
     maxlength: 10,
-  },
-
-  profilePicture: {
-    type: String,
-    default:
-      "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg",
   },
 
   dob: { type: Date, required: true },
@@ -85,14 +76,8 @@ const userSchema = new Schema<IUser>({
 
   JoinActivity: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
 
-  profileCompleted: { type: Boolean, default: false },
-
   createdAt: { type: Date, default: Date.now },
 });
-
-// --------------------------------------
-// 🌍 GEO INDEXING
-// --------------------------------------
 
 // --------------------------------------
 // 🌍 GEO INDEXING
