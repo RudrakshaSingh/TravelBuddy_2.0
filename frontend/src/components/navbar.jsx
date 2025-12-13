@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Compass,
   Globe,
+  Info,
   Link,
   LogOut,
   MapPin,
@@ -32,8 +33,6 @@ function NavBar() {
   const navigate = useNavigate();
   const { signOut } = useClerk();
   const { user:  isSignedIn } = useUser();
-
-//   const currentUser = useSelector((state) => state.userAuth.user);
 const currentUser  = {
     fullName: user?.fullName,
     profilePicture: user?.imageUrl,
@@ -87,6 +86,7 @@ const currentUser  = {
     { name: 'Discover', path: '/', icon: Compass },
     { name: 'Map', path: '/map', icon: MapPin },
     { name: 'Activities', path: '/activity-near-me', icon: Calendar },
+    { name: 'About Us', path: '/about-us', icon: Info },
 
   ];
 

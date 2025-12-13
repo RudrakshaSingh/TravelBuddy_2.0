@@ -6,6 +6,7 @@ import CompleteRegistration from "./pages/User/completeRegistration";
 import ProfilePage from "./pages/User/profile";
 import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
+import AboutUs from "./pages/aboutUs";
 import HomePage from "./pages/userHome";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
          </AuthGuard>
        } />
        <Route path="complete-registration" element={<CompleteRegistration />} />
+       <Route path="about-us" element={<AboutUs />} />
      </Route>
     </Routes>
   );

@@ -9,17 +9,21 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import store from './redux/store.js';
 
+import { SocketContextProvider } from './context/socketContext.jsx';
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <ClerkProvider 
+  <ClerkProvider
     publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
     signInFallbackRedirectUrl="/"
     signUpFallbackRedirectUrl="/complete-registration"
   >
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-        <Toaster />
-      </BrowserRouter>
+      <SocketContextProvider>
+        <BrowserRouter>
+          <App />
+          <Toaster />
+        </BrowserRouter>
+      </SocketContextProvider>
     </Provider>
   </ClerkProvider>
 );

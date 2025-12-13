@@ -164,7 +164,7 @@ export default function ProfilePage() {
       // Initialize validation/search fields
       setNationalitySearch(editData.nationality || '');
     }
-  }, [isEditing, clerkUser, editData.nationality]);
+  }, [isEditing, clerkUser, editData?.nationality]);
 
   const handleEditChange = (field, value) => {
     setEditData((prev) => ({ ...prev, [field]: value }));
@@ -199,12 +199,12 @@ export default function ProfilePage() {
     if (!editData.languages || editData.languages.length === 0)
       return 'At least one language is required';
     if (!clerkUpdates.firstName) return 'First Name is required';
-    
+
     // Check if user has typed an interest but not selected it
     if (interestSearch && interestSearch.trim().length > 0) {
         return 'Please select the interest from the dropdown or clear the search field';
     }
-    
+
     return null;
   };
 
@@ -298,7 +298,7 @@ export default function ProfilePage() {
 
   if (!profile && !isEditing) {
      // Fallback if not loading and no profile (should act handled by loadProfile redirect)
-     return null; 
+     return null;
   }
 
   return (
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                          alt="Preview"
                          className="w-full h-full object-cover"
                         />
-                    ) : ( 
+                    ) : (
                          clerkUser?.imageUrl ? (
                         <img
                           src={clerkUser.imageUrl}
@@ -349,14 +349,14 @@ export default function ProfilePage() {
                 <div className="pb-2">
                     {isEditing ? (
                         <div className="flex gap-2 mb-1">
-                             <input 
+                             <input
                                type="text"
                                value={clerkUpdates.firstName}
                                onChange={(e) => setClerkUpdates(prev => ({...prev, firstName: e.target.value}))}
                                placeholder="First Name"
                                className="px-2 py-1 border rounded focus:ring-2 focus:ring-orange-500 w-32 font-bold text-xl"
                              />
-                              <input 
+                              <input
                                type="text"
                                value={clerkUpdates.lastName}
                                onChange={(e) => setClerkUpdates(prev => ({...prev, lastName: e.target.value}))}
@@ -369,7 +369,7 @@ export default function ProfilePage() {
                             {clerkUser?.fullName || 'User'}
                          </h1>
                     )}
-                  
+
                   <p className="text-gray-500 flex items-center gap-1">
                       {clerkUser?.primaryEmailAddress?.emailAddress}
                   </p>
@@ -491,7 +491,7 @@ export default function ProfilePage() {
                   <p className="text-gray-900 font-medium">{profile?.travelStyle || 'Solo'}</p>
                 )}
               </div>
-              
+
               <div className="relative" ref={nationalityRef}>
                 <label className="text-sm text-gray-500 flex items-center gap-1">
                   <Globe size={14} />
@@ -593,7 +593,7 @@ export default function ProfilePage() {
                         )}
                      </div>
                 )}
-                
+
                 <div className="flex flex-wrap gap-2">
                     {((isEditing ? editData.interests : profile?.interests) || []).map((interest, index) => (
                         <span key={index} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center gap-1">
@@ -622,7 +622,7 @@ export default function ProfilePage() {
               <Languages className="text-orange-500" size={24} />
               Languages
             </h2>
-            
+
             {isEditing && (
                 <div className="flex flex-col gap-2 mb-4" ref={languageRef}>
                     <div className="relative">
@@ -719,7 +719,7 @@ export default function ProfilePage() {
                  <div className="flex items-center gap-3">
                       <Instagram size={20} className="text-pink-500" />
                       {isEditing ? (
-                          <input 
+                          <input
                            type="text"
                            value={editData.socialLinks?.instagram || ''}
                            onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
@@ -739,7 +739,7 @@ export default function ProfilePage() {
                  <div className="flex items-center gap-3">
                       <Facebook size={20} className="text-blue-600" />
                       {isEditing ? (
-                          <input 
+                          <input
                            type="text"
                            value={editData.socialLinks?.facebook || ''}
                            onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
@@ -759,7 +759,7 @@ export default function ProfilePage() {
                  <div className="flex items-center gap-3">
                       <Linkedin size={20} className="text-blue-700" />
                       {isEditing ? (
-                          <input 
+                          <input
                            type="text"
                            value={editData.socialLinks?.linkedin || ''}
                            onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
@@ -774,12 +774,12 @@ export default function ProfilePage() {
                           ) : <span className="text-gray-400">Not set</span>
                       )}
                  </div>
-                 
+
                  {/* Twitter */}
                  <div className="flex items-center gap-3">
                       <Twitter size={20} className="text-blue-400" />
                       {isEditing ? (
-                          <input 
+                          <input
                            type="text"
                            value={editData.socialLinks?.twitter || ''}
                            onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
