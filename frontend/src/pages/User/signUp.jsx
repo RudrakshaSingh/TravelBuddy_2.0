@@ -1,15 +1,6 @@
 import { SignUp } from "@clerk/clerk-react";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 export default function SignUpPage() {
-  const navigate = useNavigate();
-
-  // After Clerk sign-up completes, this component will redirect
-  // We handle the redirect manually to pass state
-  const handleSignUpComplete = () => {
-    navigate('/complete-registration', { state: { fromSignUp: true }, replace: true });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -42,7 +33,7 @@ export default function SignUpPage() {
             routing="path"
             path="/sign-up"
             signInUrl="/sign-in"
-            forceRedirectUrl="/"
+            forceRedirectUrl="/complete-registration"
           />
         </div>
       </div>

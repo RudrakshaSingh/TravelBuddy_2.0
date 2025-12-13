@@ -9,6 +9,7 @@ const initialState = {
   isRegistering: false,
   isUpdating: false,
   error: null,
+  errorStatus: null, // HTTP status code for redirect logic
   isRegistered: false,
 };
 
@@ -110,7 +111,8 @@ const userSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || 'Failed to fetch profile';
+        state.errorStatus = action.payload?.status || null;
       })
       // Update Profile
       .addCase(updateProfile.pending, (state) => {

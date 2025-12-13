@@ -16,7 +16,7 @@ export const useUserActions = () => {
   const { getToken } = useAuth();
   const { user: clerkUser } = useUser();
 
-  const { profile, isLoading, isRegistering, isUpdating, error, isRegistered } =
+  const { profile, isLoading, isRegistering, isUpdating, error, errorStatus, isRegistered } =
     useSelector((state) => state.user);
 
   const handleRegister = useCallback(
@@ -57,6 +57,7 @@ export const useUserActions = () => {
     isRegistering,
     isUpdating,
     error,
+    errorStatus,
     isRegistered,
     clerkUser,
 

@@ -1,6 +1,6 @@
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Navigate,Route, Routes } from "react-router-dom";
 
+import AuthGuard from "./components/AuthGuard";
 import Layout from "./components/layout";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import ProfilePage from "./pages/User/profile";
@@ -12,10 +12,18 @@ function App() {
   return (
     <Routes >
      <Route path="/" element={<Layout />} >
-       <Route index element={<HomePage />} />
+       <Route index element={
+         <AuthGuard>
+           <HomePage />
+         </AuthGuard>
+       } />
        <Route path="sign-up/*" element={<SignUpPage />} />
        <Route path="sign-in/*" element={<SignInPage />} />
-       <Route path="profile" element={<ProfilePage />} />
+       <Route path="profile" element={
+         <AuthGuard>
+           <ProfilePage />
+         </AuthGuard>
+       } />
        <Route path="complete-registration" element={<CompleteRegistration />} />
      </Route>
     </Routes>

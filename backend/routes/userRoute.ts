@@ -1,19 +1,17 @@
 import { Router } from "express";
 
 import { getProfile, registerUser, updateProfile } from "../controller/userController";
-import { verifyJWT } from "../middlewares/authMiddleware";
+import { requireProfile,verifyClerk } from "../middlewares/authMiddleware";
 import upload from "../middlewares/multerMiddleware";
 
 const router = Router();
 
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+// For form-data without files - only needs Clerk auth (no profile yet)
+router.post("/register", verifyClerk, upload.none(), registerUser);
 
-// For form-data without files
-router.post("/register", ClerkExpressRequireAuth() as any, upload.none(), registerUser);
-
-router.get("/profile", verifyJWT, getProfile);
-
-router.patch("/update-profile", verifyJWT, updateProfile);
+// These routes require full auth (Clerk + MongoDB profile)
+router.get("/profile", requireProfile, getProfile);
+router.patch("/update-profile", requireProfile, updateProfile);
 
 export default router;
 

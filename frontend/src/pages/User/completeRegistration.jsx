@@ -20,26 +20,59 @@ export default function CompleteRegistration() {
 
   const [showForm, setShowForm] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
+
+  // Check if error is a network/connection error
+  const isNetworkError = (err) => {
+    if (!err) return false;
+    // No status means network error (connection refused, timeout, etc.)
+    if (!err.status && !err.response?.status) return true;
+    // Axios network errors
+    if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
+    if (err.message?.includes('Network Error')) return true;
+    if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
+    return false;
+  };
 
   // Check if user already exists in backend
-  useEffect(() => {
-    const checkExistingUser = async () => {
-      if (!isAuthLoaded || !isUserLoaded || !isSignedIn || hasChecked.current) return;
-      hasChecked.current = true;
+  const checkExistingUser = async () => {
+    if (!isAuthLoaded || !isUserLoaded || !isSignedIn) return;
 
-      try {
-        await fetchProfile();
-        // User exists in backend, redirect to profile
-        navigate('/profile', { replace: true });
-      } catch (err) {
-        // User doesn't exist in backend - show registration form
-        setShowForm(true);
-      } finally {
-        setIsCheckingUser(false);
+    setConnectionError(false);
+    setIsCheckingUser(true);
+
+    try {
+      await fetchProfile();
+      // User exists in backend, redirect to profile
+      navigate('/profile', { replace: true });
+    } catch (err) {
+      // Check for network/connection errors
+      if (isNetworkError(err)) {
+        console.error('Network error checking profile:', err);
+        setConnectionError(true);
+        setShowForm(false);
+      } else {
+        // Only show form if it's actually a "user not found" error (404 or 403)
+        const status = err?.status;
+        if (status === 404 || status === 403) {
+          setShowForm(true);
+        } else {
+          // For other errors, treat as connection issue
+          console.error('Error checking profile:', err);
+          setConnectionError(true);
+          setShowForm(false);
+        }
       }
-    };
+    } finally {
+      setIsCheckingUser(false);
+    }
+  };
 
-    checkExistingUser();
+  useEffect(() => {
+    if (!hasChecked.current && isAuthLoaded && isUserLoaded && isSignedIn) {
+      hasChecked.current = true;
+      checkExistingUser();
+    }
   }, [isAuthLoaded, isUserLoaded, isSignedIn, navigate]);
 
   const handleChange = (e) => {
@@ -71,7 +104,9 @@ export default function CompleteRegistration() {
       toast.success('Registration completed successfully!');
       navigate('/profile', { replace: true });
     } catch (err) {
-      toast.error(error || 'Registration failed. Please try again.');
+      // Error is now a string from the redux slice
+      const errorMessage = typeof err === 'string' ? err : (err?.message || error || 'Registration failed. Please try again.');
+      toast.error(errorMessage);
     }
   };
 
@@ -79,6 +114,31 @@ export default function CompleteRegistration() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // Show connection error with retry option
+  if (connectionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8 max-w-md">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-4">
+            Unable to connect to the server. Please check your connection and try again.
+          </p>
+          <button
+            onClick={() => {
+              hasChecked.current = false;
+              setConnectionError(false);
+              checkExistingUser();
+            }}
+            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

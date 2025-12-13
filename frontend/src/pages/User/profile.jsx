@@ -16,36 +16,75 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!isAuthLoaded || !isUserLoaded) return;
+  // Check if error is a network/connection error
+  const isNetworkError = (err) => {
+    if (!err) return false;
+    if (!err.status && !err.response?.status) return true;
+    if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
+    if (err.message?.includes('Network Error')) return true;
+    if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
+    return false;
+  };
 
-      if (!isSignedIn) {
-        navigate('/sign-in', { replace: true });
+  const loadProfile = async () => {
+    if (!isAuthLoaded || !isUserLoaded) return;
+
+    if (!isSignedIn) {
+      navigate('/sign-in', { replace: true });
+      return;
+    }
+
+    // If profile is already loaded in Redux (from AuthGuard), use it
+    if (reduxProfile) {
+      setProfile(reduxProfile);
+      setEditData(reduxProfile);
+      setLoadingProfile(false);
+      return;
+    }
+
+    setConnectionError(false);
+    setLoadingProfile(true);
+
+    try {
+      const response = await fetchProfile();
+      setProfile(response.data);
+      setEditData(response.data);
+    } catch (err) {
+      // Check for network/connection errors first
+      if (isNetworkError(err)) {
+        console.error('Network error loading profile:', err);
+        setConnectionError(true);
+        setLoadingProfile(false);
         return;
       }
 
-      try {
-        const response = await fetchProfile();
-        setProfile(response.data);
-        setEditData(response.data);
-      } catch (err) {
-        // User not registered in backend, redirect to complete registration
-        // err could be the rejectWithValue object { status, message } or a plain error
-        const status = err?.status || err?.response?.status;
-        if (status === 404) {
-          navigate('/complete-registration', { replace: true });
-        } else {
-          toast.error(err?.message || 'Failed to load profile');
-        }
-      } finally {
-        setLoadingProfile(false);
+      // User not registered in backend, redirect to complete registration
+      const status = err?.status || err?.response?.status;
+      // Backend returns 403 for users without MongoDB profile, also handle 404
+      if (status === 403 || status === 404) {
+        navigate('/complete-registration', { replace: true });
+      } else {
+        toast.error(err?.message || 'Failed to load profile');
       }
-    };
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
+  // When reduxProfile changes (from AuthGuard fetch), update local state
+  useEffect(() => {
+    if (reduxProfile && !profile) {
+      setProfile(reduxProfile);
+      setEditData(reduxProfile);
+      setLoadingProfile(false);
+    }
+  }, [reduxProfile]);
+
+  useEffect(() => {
     loadProfile();
-  }, [isAuthLoaded, isUserLoaded, isSignedIn, navigate]);
+  }, [isAuthLoaded, isUserLoaded, isSignedIn]);
 
   const handleEditChange = (field, value) => {
     setEditData(prev => ({ ...prev, [field]: value }));
@@ -71,6 +110,27 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // Show connection error with retry option
+  if (connectionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
+        <div className="text-center p-8 max-w-md bg-white rounded-xl shadow-lg">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-4">
+            Unable to connect to the server. Please check your connection and try again.
+          </p>
+          <button
+            onClick={() => loadProfile()}
+            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
