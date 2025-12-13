@@ -31,7 +31,7 @@ function NavBar() {
 
   const navigate = useNavigate();
   const { signOut } = useClerk();
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
+  const { user:  isSignedIn } = useUser();
 
 //   const currentUser = useSelector((state) => state.userAuth.user);
 const currentUser  = {
@@ -96,8 +96,6 @@ const currentUser  = {
     { name: 'My Activities', path: '/created-activities', icon: Calendar },
     { name: 'Connections', path: '/connections', icon: Link },
     { name: 'Notifications', path: '/notifications', icon: Bell, badge: notificationCount },
-    {name:'Update Profile',path:'/update-profile',icon:Settings}
-
   ];
 
   return (
@@ -178,11 +176,11 @@ const currentUser  = {
                           <img
                             src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
                             alt={userDisplayName}
-                            className="w-10 h-10 rounded-full border-2 border-gray-200"
+                            className="w-10 h-10 rounded-full border-2 border-gray-200 flex-shrink-0"
                           />
-                          <div>
-                            <p className="font-semibold text-gray-900 text-sm">{userDisplayName}</p>
-                            <p className="text-xs text-gray-500">{userEmail}</p>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 text-sm truncate">{userDisplayName}</p>
+                            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                           </div>
                         </div>
                       </div>

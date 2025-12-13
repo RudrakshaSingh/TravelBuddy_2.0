@@ -69,3 +69,12 @@ export const LANGUAGES = [
   "Yiddish", "Yoruba",
   "Zhuang, Chuang", "Zulu"
 ];
+
+export const INTERESTS = [
+  "Adventure", "Art & Design", "Backpacking", "Beaches", "Camping",
+  "City Sightseeing", "Culture & History", "Dancing", "Diving", "Eco-Tourism",
+  "Festivals", "Food & Drink", "Hiking", "Luxury", "Music",
+  "Nature", "Nightlife", "Photography", "Road Trips", "Shopping",
+  "Skiing/Snowboarding", "Solo Travel", "Sports", "Volunteering",
+  "Wellness & Spa", "Wildlife", "Yoga"
+];

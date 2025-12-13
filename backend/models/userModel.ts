@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-import { COUNTRIES, GENDERS, LANGUAGE_LEVELS, TRAVEL_STYLES } from "../data/enums";
+import { COUNTRIES, GENDERS, INTERESTS, LANGUAGE_LEVELS, TRAVEL_STYLES } from "../data/enums";
 import { IUser } from "../interfaces/userInterface";
 
 const geoPointSchema = new Schema({
@@ -53,12 +53,13 @@ const userSchema = new Schema<IUser>({
 
   futureDestinations: [futureDestinationSchema],
 
-  interests: [String],
+  interests: [{ type: String, enum: INTERESTS }],
 
   socialLinks: {
-    instagram: String,
-    facebook: String,
-    linkedin: String,
+    instagram: { type: String, default: "" },
+    facebook: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    twitter: { type: String, default: "" },
   },
 
   isOnline: { type: Boolean, default: false },
