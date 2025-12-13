@@ -3,7 +3,7 @@ import { Document } from "mongoose";
 
 export interface ILanguage {
   name: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
+  level: "Native" | "Beginner" | "Intermediate" | "Advanced";
 }
 
 export interface IGeoPoint {

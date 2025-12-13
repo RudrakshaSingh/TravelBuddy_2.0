@@ -1,10 +1,20 @@
 import { useAuth,useUser } from '@clerk/clerk-react';
 import { Briefcase, Calendar, Edit2, Globe, Heart, Languages, Save, User, X } from 'lucide-react';
-import { useEffect,useState } from 'react';
+import { useCallback,useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 import { useUserActions } from '../../redux/hooks/useUser';
+
+// Check if error is a network/connection error
+const isNetworkError = (err) => {
+  if (!err) return false;
+  if (!err.status && !err.response?.status) return true;
+  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
+  if (err.message?.includes('Network Error')) return true;
+  if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
+  return false;
+};
 
 export default function ProfilePage() {
   const { user: clerkUser, isLoaded: isUserLoaded } = useUser();
@@ -18,17 +28,9 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
 
-  // Check if error is a network/connection error
-  const isNetworkError = (err) => {
-    if (!err) return false;
-    if (!err.status && !err.response?.status) return true;
-    if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
-    if (err.message?.includes('Network Error')) return true;
-    if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
-    return false;
-  };
 
-  const loadProfile = async () => {
+
+  const loadProfile = useCallback(async () => {
     if (!isAuthLoaded || !isUserLoaded) return;
 
     if (!isSignedIn) {
@@ -71,7 +73,7 @@ export default function ProfilePage() {
     } finally {
       setLoadingProfile(false);
     }
-  };
+  }, [isAuthLoaded, isUserLoaded, isSignedIn, navigate, reduxProfile, fetchProfile]);
 
   // When reduxProfile changes (from AuthGuard fetch), update local state
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile();
-  }, [isAuthLoaded, isUserLoaded, isSignedIn]);
+  }, [loadProfile]);
 
   const handleEditChange = (field, value) => {
     setEditData(prev => ({ ...prev, [field]: value }));
@@ -96,7 +98,7 @@ export default function ProfilePage() {
       setProfile(response.data);
       setIsEditing(false);
       toast.success('Profile updated successfully!');
-    } catch (err) {
+    } catch {
       toast.error(error || 'Failed to update profile');
     }
   };

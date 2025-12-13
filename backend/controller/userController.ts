@@ -15,7 +15,7 @@ export const registerUser = asyncHandler(
       throw new ApiError(400, "Invalid input data", errors);
     }
 
-    const { clerk_id, mobile, dob, gender } = parsed.data;
+    const { clerk_id, mobile, dob, gender, nationality, languages } = parsed.data;
     const inputDob = new Date(dob);
 
     // Check if user already exists by clerk_id
@@ -35,6 +35,8 @@ export const registerUser = asyncHandler(
       mobile,
       dob: inputDob,
       gender,
+      nationality,
+      languages: languages as any,
     });
 
     return res.status(201).json(

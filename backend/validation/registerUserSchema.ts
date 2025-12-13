@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { COUNTRIES, GENDERS, LANGUAGE_LEVELS, LANGUAGES } from "../data/enums";
+
 export const registerUserSchema = z.object({
   clerk_id: z.string().min(1, "Clerk ID is required"),
 
@@ -12,10 +14,17 @@ export const registerUserSchema = z.object({
     return !isNaN(d.getTime()) && d <= new Date();
   }, "Invalid or future DOB"),
 
-  gender: z
-    .enum(["Male", "Female", "Other"])
-    .refine((val) => ["Male", "Female", "Other"].includes(val), {
-      message: "Gender must be Male, Female, or Other",
-    }),
+  gender: z.enum(GENDERS as [string, ...string[]]),
+
+  nationality: z.enum(COUNTRIES as [string, ...string[]]),
+
+  languages: z
+    .array(
+      z.object({
+        name: z.enum(LANGUAGES as [string, ...string[]]),
+        level: z.enum(LANGUAGE_LEVELS as [string, ...string[]]),
+      })
+    )
+    .min(1, "At least one language is required"),
 });
 

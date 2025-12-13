@@ -1,6 +1,6 @@
-// src/models/user.model.ts
 import mongoose, { Schema } from "mongoose";
 
+import { COUNTRIES, GENDERS, LANGUAGE_LEVELS, TRAVEL_STYLES } from "../data/enums";
 import { IUser } from "../interfaces/userInterface";
 
 const geoPointSchema = new Schema({
@@ -26,19 +26,11 @@ const userSchema = new Schema<IUser>({
 
   dob: { type: Date, required: true },
 
-  gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
+  gender: { type: String, enum: GENDERS, required: true },
 
   travelStyle: {
     type: String,
-    enum: [
-      "Solo",
-      "Group",
-      "Adventure",
-      "Luxury",
-      "Backpacking",
-      "Business",
-      "Family",
-    ],
+    enum: TRAVEL_STYLES,
     default: "Solo",
   },
 
@@ -47,7 +39,7 @@ const userSchema = new Schema<IUser>({
       name: String,
       level: {
         type: String,
-        enum: ["Beginner", "Intermediate", "Advanced"],
+        enum: LANGUAGE_LEVELS,
         default: "Beginner",
       },
     },
@@ -57,7 +49,7 @@ const userSchema = new Schema<IUser>({
 
   currentLocation: geoPointSchema,
 
-  nationality: { type: String, default: "Not Specified" },
+  nationality: { type: String, enum: COUNTRIES, default: "Not Specified" },
 
   futureDestinations: [futureDestinationSchema],
 
