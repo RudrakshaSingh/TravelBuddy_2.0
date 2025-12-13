@@ -1,27 +1,30 @@
-import { useAuth,useUser } from '@clerk/clerk-react';
-import { useEffect, useRef,useState } from 'react';
+// ... (imports remain)
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 import { COUNTRIES, GENDERS, LANGUAGE_LEVELS, LANGUAGES } from '../../data/enums';
-// ... imports ...
 import { useUserActions } from '../../redux/hooks/useUser';
 
+// ... (helper functions remain)
+const isNetworkError = (err) => {
+  if (!err) return false;
+  // No status means network error (connection refused, timeout, etc.)
+  if (!err.status && !err.response?.status) return true;
+  // Axios network errors
+  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
+  if (err.message?.includes('Network Error')) return true;
+  if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
+  return false;
+};
+
 export default function CompleteRegistration() {
-  // Language Search State
-  const [languageSearch, setLanguageSearch] = useState('');
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const languageRef = useRef(null);
-
-  // Filter languages based on search
-  const filteredLanguages = LANGUAGES.filter(lang => 
-    lang.toLowerCase().includes(languageSearch.toLowerCase())
-  );
-
   const { user, isLoaded: isUserLoaded } = useUser();
   const { isSignedIn, isLoaded: isAuthLoaded } = useAuth();
   const navigate = useNavigate();
-  const { registerUser, fetchProfile, isRegistering, error } = useUserActions();
+  // Fixed unused error variable syntax
+  const { registerUser, fetchProfile, isRegistering } = useUserActions(); 
   const hasChecked = useRef(false);
 
   const [formData, setFormData] = useState({
@@ -32,23 +35,37 @@ export default function CompleteRegistration() {
     languages: [],
   });
   
+  // New Language State
   const [newLanguage, setNewLanguage] = useState({ name: '', level: 'Beginner' });
-
+  
+  // UI States
   const [showForm, setShowForm] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
 
-  // Nationality Search State
+  // Search States
+  const [languageSearch, setLanguageSearch] = useState('');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  
   const [nationalitySearch, setNationalitySearch] = useState('');
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
-  const nationalityRef = useRef(null);
 
-  // Filter countries based on search
+  // Removed Interest States
+
+  const languageRef = useRef(null);
+  const nationalityRef = useRef(null);
+  // Removed Interest Ref
+
+  // Filter lists
+  const filteredLanguages = LANGUAGES.filter(lang => 
+    lang.toLowerCase().includes(languageSearch.toLowerCase())
+  );
   const filteredCountries = COUNTRIES.filter(country => 
     country.toLowerCase().includes(nationalitySearch.toLowerCase())
   );
+  // Removed Filtered Interests
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (nationalityRef.current && !nationalityRef.current.contains(event.target)) {
@@ -63,65 +80,45 @@ export default function CompleteRegistration() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Check if error is a network/connection error
-  const isNetworkError = (err) => {
-    if (!err) return false;
-    // No status means network error (connection refused, timeout, etc.)
-    if (!err.status && !err.response?.status) return true;
-    // Axios network errors
-    if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') return true;
-    if (err.message?.includes('Network Error')) return true;
-    if (err.message?.includes('ERR_CONNECTION_REFUSED')) return true;
-    return false;
-  };
-
   // Check if user already exists in backend
-  const checkExistingUser = async () => {
+  const checkExistingUser = useCallback(async () => {
     if (!isAuthLoaded || !isUserLoaded || !isSignedIn) return;
 
     setConnectionError(false);
     setIsCheckingUser(true);
 
-    // Check if user has a profile in MongoDB
     try {
-      setConnectionError(false);
       await fetchProfile();
       // User exists in backend, redirect to profile
       navigate('/profile', { replace: true });
     } catch (err) {
-      // Check for network/connection errors first
       if (isNetworkError(err)) {
-        console.error('Network error checking profile:', err);
         setConnectionError(true);
         setShowForm(false);
         return;
       }
 
-      // Check if it's a "User not found" (404) or "Profile incomplete" (403)
       const status = err?.status || err?.response?.status;
       
       if (status === 404 || status === 403) {
         setShowForm(true);
       } else if (status === 401) {
-        // Unauthorized, redirect to sign-in
         navigate('/sign-in', { replace: true });
       } else {
-        // For other errors, treat as connection issue
-        console.error('Error checking profile:', err);
         setConnectionError(true);
         setShowForm(false);
       }
     } finally {
       setIsCheckingUser(false);
     }
-  };
+  }, [isAuthLoaded, isUserLoaded, isSignedIn, fetchProfile, navigate]);
 
   useEffect(() => {
     if (!hasChecked.current && isAuthLoaded && isUserLoaded && isSignedIn) {
       hasChecked.current = true;
       checkExistingUser();
     }
-  }, [isAuthLoaded, isUserLoaded, isSignedIn, navigate]);
+  }, [isAuthLoaded, isUserLoaded, isSignedIn, checkExistingUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -162,8 +159,7 @@ export default function CompleteRegistration() {
       toast.success('Registration completed successfully!');
       navigate('/profile', { replace: true });
     } catch (err) {
-      // Error is now a string from the redux slice
-      const errorMessage = typeof err === 'string' ? err : (err?.message || error || 'Registration failed. Please try again.');
+      const errorMessage = typeof err === 'string' ? err : (err?.message || 'Registration failed. Please try again.');
       toast.error(errorMessage);
     }
   };
@@ -176,7 +172,6 @@ export default function CompleteRegistration() {
     );
   }
 
-  // Show connection error with retry option
   if (connectionError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -229,6 +224,7 @@ export default function CompleteRegistration() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Mobile */}
           <div>
             <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
               Mobile Number
@@ -241,12 +237,12 @@ export default function CompleteRegistration() {
               onChange={handleChange}
               placeholder="Enter 10-digit mobile number"
               maxLength={10}
-              pattern="[0-9]{10}"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
               required
             />
           </div>
 
+          {/* DOB */}
           <div>
             <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">
               Date of Birth
@@ -258,11 +254,12 @@ export default function CompleteRegistration() {
               value={formData.dob}
               onChange={handleChange}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
               required
             />
           </div>
 
+          {/* Gender */}
           <div>
             <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
               Gender
@@ -272,7 +269,7 @@ export default function CompleteRegistration() {
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
               required
             >
               <option value="">Select Gender</option>
@@ -284,7 +281,7 @@ export default function CompleteRegistration() {
             </select>
           </div>
 
-
+          {/* Nationality */}
           <div ref={nationalityRef} className="relative">
             <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-1">
               Nationality
@@ -296,14 +293,13 @@ export default function CompleteRegistration() {
               onChange={(e) => {
                 setNationalitySearch(e.target.value);
                 setShowNationalityDropdown(true);
-                setFormData(prev => ({ ...prev, nationality: '' })); // Reset selection on type
+                setFormData(prev => ({ ...prev, nationality: '' }));
               }}
               onFocus={() => setShowNationalityDropdown(true)}
               placeholder="Search nationality..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
               autoComplete="off"
             />
-            
             {showNationalityDropdown && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {filteredCountries.length > 0 ? (
@@ -316,7 +312,7 @@ export default function CompleteRegistration() {
                         setNationalitySearch(country);
                         setShowNationalityDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-orange-50 text-gray-700 hover:text-orange-700 transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-orange-50 text-gray-700"
                     >
                       {country}
                     </button>
@@ -328,9 +324,10 @@ export default function CompleteRegistration() {
             )}
           </div>
 
+          {/* Languages */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Languages (at least one required)
+              Languages (at least one)
             </label>
             <div className="flex flex-col sm:flex-row gap-2 mb-2">
               <div ref={languageRef} className="relative flex-1 min-w-0">
@@ -341,13 +338,12 @@ export default function CompleteRegistration() {
                   onChange={(e) => {
                     setLanguageSearch(e.target.value);
                     setShowLanguageDropdown(true);
-                    setNewLanguage(prev => ({ ...prev, name: '' })); // Reset selection on type
+                    setNewLanguage(prev => ({ ...prev, name: '' }));
                   }}
                   onFocus={() => setShowLanguageDropdown(true)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                   autoComplete="off"
                 />
-                
                 {showLanguageDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {filteredLanguages.length > 0 ? (
@@ -360,7 +356,7 @@ export default function CompleteRegistration() {
                             setLanguageSearch(lang);
                             setShowLanguageDropdown(false);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-orange-50 text-gray-700 hover:text-orange-700 transition-colors"
+                          className="w-full text-left px-4 py-2 hover:bg-orange-50 text-gray-700"
                         >
                           {lang}
                         </button>
@@ -378,21 +374,17 @@ export default function CompleteRegistration() {
                   className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                 >
                   {LANGUAGE_LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
+                    <option key={level} value={level}>{level}</option>
                   ))}
                 </select>
                 <button
                   type="button"
                   onClick={() => {
                     if (newLanguage.name.trim()) {
-                      // Check if language already added
                       if (formData.languages.some(l => l.name === newLanguage.name.trim())) {
                         toast.error('Language already added');
                         return;
                       }
-                      
                       setFormData({
                         ...formData,
                         languages: [...formData.languages, { ...newLanguage, name: newLanguage.name.trim() }]
@@ -403,14 +395,13 @@ export default function CompleteRegistration() {
                        toast.error('Please select a language');
                     }
                   }}
-                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                 >
                   Add
                 </button>
               </div>
             </div>
             
-            {/* Language List */}
             {formData.languages.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.languages.map((lang, index) => (
@@ -452,4 +443,3 @@ export default function CompleteRegistration() {
     </div>
   );
 }
-

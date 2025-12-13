@@ -5,6 +5,7 @@ import express, { Application } from "express";
 
 import connectToDB from "./db/db";
 import errorMiddleware from "./middlewares/errorMiddleware";
+import friendRoutes from "./routes/friendRoute";
 import userRoutes from "./routes/userRoute";
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/users", userRoutes);
+app.use("/friends", friendRoutes);
 
 // Global Error Handler
 app.use(errorMiddleware);

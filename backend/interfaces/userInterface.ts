@@ -54,5 +54,8 @@ export interface IUser extends Document {
   JoinActivity?: string[];
 
   createdAt?: Date;
+  friends?: string[];
+  friendRequests?: string[];
+  sentFriendRequests?: string[];
 }
 
