@@ -71,6 +71,9 @@ const userSchema = new Schema<IUser>({
   JoinActivity: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
 
   createdAt: { type: Date, default: Date.now },
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  sentFriendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 // --------------------------------------
