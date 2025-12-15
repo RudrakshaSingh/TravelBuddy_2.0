@@ -122,8 +122,18 @@ const currentUser  = {
     navigate(path);
     setIsProfileMenuOpen(false);
   };
-
-
+  const handleCreateActivity = () => {
+  const hasActivePlan =
+  (user.activePlan === "MONTHLY" || user.activePlan === "YEARLY") &&
+  user.planEndDate > new Date();
+  if(hasActivePlan){
+    navigate('/create-activity');
+    setIsProfileMenuOpen(false);
+  }else{
+    navigate('/subscription');
+    setIsProfileMenuOpen(false);
+  }
+  };
   const handleLogout = async () => {
     await signOut();
     toast.success('Logout successful');
@@ -241,7 +251,7 @@ const currentUser  = {
             {isSignedIn ? (
               <div className="flex items-center space-x-4">
                  <button
-                  onClick={() => handleNavigation('/subscription')}
+                  onClick={() => handleCreateActivity()}
                   className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-300 font-medium text-sm group"
                 >
                   <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
