@@ -171,8 +171,9 @@ const currentUser  = {
   ];
 
   return (
-    <nav className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100/50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+    <nav className="w-full max-w-7xl pointer-events-auto bg-white/80 backdrop-blur-xl shadow-lg border border-gray-100/50 rounded-2xl transition-all duration-300">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
 
           <button
@@ -488,6 +489,7 @@ const currentUser  = {
         )}
       </div>
     </nav>
+    </div>
   );
 }
 
