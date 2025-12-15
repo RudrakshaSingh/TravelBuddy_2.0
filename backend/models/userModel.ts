@@ -68,6 +68,10 @@ const userSchema = new Schema<IUser>({
     twitter: { type: String, default: "" },
   },
 
+  hasUsedFreeTrial: { type: Boolean, default: false },
+  planStartDate: { type: Date, default: null },
+  planEndDate: { type: Date, default: null },
+  planType: { type: String, default: "FREE_TRIAL" },
   isOnline: { type: Boolean, default: false },
 
   lastSeen: { type: Date, default: Date.now },
@@ -82,9 +86,6 @@ const userSchema = new Schema<IUser>({
   sentFriendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
-// --------------------------------------
-// 🌍 GEO INDEXING
-// --------------------------------------
 userSchema.index({ currentLocation: "2dsphere" });
 userSchema.index({ "futureDestinations.coordinates": "2dsphere" });
 

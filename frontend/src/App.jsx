@@ -11,6 +11,7 @@ import HomePage from "./pages/userHome";
 import NearByTravellers from "./components/NearByTravellers";
 import NearHotels from "./components/NearHotels";
 import TouristPlaces from "./components/TouristPlaces";
+import CreateActivity from "./pages/Activity/createActivity";
 
 function App() {
   return (
@@ -35,6 +36,9 @@ function App() {
        <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
        <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
        <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
+
+       {/* Activity Routes */}
+       <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
      </Route>
     </Routes>
   );

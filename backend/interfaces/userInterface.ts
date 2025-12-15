@@ -58,5 +58,9 @@ export interface IUser extends Document {
   friends?: string[];
   friendRequests?: string[];
   sentFriendRequests?: string[];
+  hasUsedFreeTrial?: boolean;
+  planStartDate?: Date;
+  planEndDate?: Date;
+  planType?: string;
 }
 
