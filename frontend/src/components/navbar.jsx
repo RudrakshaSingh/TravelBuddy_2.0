@@ -161,68 +161,76 @@ const currentUser  = {
   ];
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+    <nav className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100/50 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
 
           <button
             onClick={() => handleNavigation('/')}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 group"
           >
-            <div className="bg-amber-600 p-2 rounded-lg">
-              <Globe className="text-white" size={24} />
+            <div className="bg-gradient-to-tr from-amber-500 to-orange-600 p-2.5 rounded-xl shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform duration-300">
+              <Globe className="text-white" size={24} strokeWidth={2.5} />
             </div>
-            <div>
-              <span className="text-xl font-bold bg-amber-600 bg-clip-text text-transparent">
+            <div className="flex flex-col items-start">
+              <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent tracking-tight">
                 TravelBuddy
               </span>
-              <div className="text-xs text-gray-500 -mt-1">Find your travel buddy</div>
+              <span className="text-[10px] font-medium text-amber-600 tracking-wider uppercase ml-0.5">Find your companion</span>
             </div>
           </button>
 
           {isSignedIn && (
-            <div className="hidden lg:flex items-center space-x-1 text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
-              <MapPin size={24} className="text-amber-600" />
-              <span className="truncate max-w-[200px]">{currentLocationName}</span>
+            <div className="hidden lg:flex items-center space-x-2 text-sm text-gray-600 bg-gray-50/80 px-4 py-2 rounded-full border border-gray-100 hover:bg-white hover:shadow-md transition-all duration-300 group cursor-default">
+              <MapPin size={16} className="text-amber-500 group-hover:animate-bounce" />
+              <span className="truncate max-w-[200px] font-medium">{currentLocationName}</span>
             </div>
           )}
 
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               link.children ? (
                 <div key={link.name} className="relative group z-50">
-                  <button className={`flex items-center space-x-1 transition-colors duration-200 py-2 ${
-                    link.children.some(child => location.pathname === child.path) ? 'text-amber-600 font-medium' : 'text-gray-700 hover:text-blue-600'
+                  <button className={`flex items-center space-x-1.5 py-2 text-sm font-medium transition-colors duration-200 ${
+                    link.children.some(child => location.pathname === child.path)
+                      ? 'text-amber-600'
+                      : 'text-gray-600 hover:text-amber-600'
                   }`}>
-                    <link.icon size={20} />
-                    <span className="group-hover:underline underline-offset-4">{link.name}</span>
-                    <ChevronDown size={16} className="ml-1" />
+                    <link.icon size={18} strokeWidth={2} />
+                    <span>{link.name}</span>
+                    <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
                   </button>
-                  <div className="absolute left-0 mt-0 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 transform origin-top-left">
-                    {link.children.map((child) => (
-                      <button
-                        key={child.name}
-                        onClick={() => handleNavigation(child.path)}
-                        className="w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                      >
-                        <child.icon size={16} />
-                        <span>{child.name}</span>
-                      </button>
-                    ))}
+                  <div className="absolute left-1/2 -translate-x-1/2 pt-4 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 w-60">
+                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden p-2">
+                       {link.children.map((child) => (
+                        <button
+                          key={child.name}
+                          onClick={() => handleNavigation(child.path)}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 text-gray-600 hover:text-amber-600 hover:bg-amber-50/50 rounded-xl transition-all duration-200 text-left group/item"
+                        >
+                          <div className="p-1.5 bg-gray-100 group-hover/item:bg-amber-100 rounded-lg transition-colors">
+                            <child.icon size={16} className="text-gray-500 group-hover/item:text-amber-600" />
+                          </div>
+                          <span className="text-sm font-medium">{child.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : (
                 <button
                   key={link.name}
                   onClick={() => handleNavigation(link.path)}
-                  className={`relative flex items-center space-x-1 transition-colors duration-200 group ${
-                    location.pathname === link.path ? 'text-amber-600 font-medium' : 'text-gray-700 hover:text-blue-600'
+                  className={`relative flex items-center space-x-1.5 text-sm font-medium transition-colors duration-200 ${
+                    location.pathname === link.path
+                      ? 'text-amber-600'
+                      : 'text-gray-600 hover:text-amber-600'
                   }`}
                 >
-                  <link.icon size={20} />
-                  <span className="group-hover:underline underline-offset-4">{link.name}</span>
+                  <link.icon size={18} strokeWidth={2} />
+                  <span>{link.name}</span>
                   {link.badge && link.badge > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
                       {link.badge}
                     </span>
                   )}
@@ -233,251 +241,239 @@ const currentUser  = {
             {isSignedIn ? (
               <div className="flex items-center space-x-4">
                  <button
-              onClick={() => handleNavigation('/create-activity')}
-              className="flex items-center space-x-1 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Plus size={18} />
-              <span className="hidden lg:inline text-center">Create Activity</span>
-            </button>
+                  onClick={() => handleNavigation('/subscription')}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-300 font-medium text-sm group"
+                >
+                  <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+                  <span className="hidden lg:inline">Create Activity</span>
+                </button>
 
                 {/* Profile Dropdown Menu */}
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-amber-600 transition-colors p-1 rounded-lg hover:bg-gray-50"
+                    className="flex items-center space-x-2 p-1 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-all duration-200"
                   >
-                    <img
-                      src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
-                      alt={userDisplayName}
-                      className="w-8 h-8 rounded-full border-2 border-gray-200 hover:border-amber-600 transition-colors"
-                    />
-                    <span className="hidden lg:inline">{userDisplayName}</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                    <div className="relative">
+                      <img
+                        src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
+                        alt={userDisplayName}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ring-1 ring-gray-100"
+                      />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Dropdown Menu */}
                   {isProfileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                    <div className="absolute right-0 mt-4 w-72 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                       {/* User Info Header */}
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <div className="flex items-center space-x-3">
+                      <div className="px-6 py-5 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+                        <div className="flex items-center space-x-4">
                           <img
                             src={userImage || 'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'}
                             alt={userDisplayName}
-                            className="w-10 h-10 rounded-full border-2 border-gray-200 flex-shrink-0"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
                           />
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm truncate">{userDisplayName}</p>
-                            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-gray-900 text-base truncate">{userDisplayName}</p>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{userEmail}</p>
                           </div>
                         </div>
                       </div>
 
-                      {profileMenuItems.map((item, index) => (
+                      <div className="p-2">
+                        {profileMenuItems.map((item, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleNavigation(item.path)}
+                            className="w-full flex items-center justify-between px-4 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-colors text-left group"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="p-1.5 rounded-lg bg-gray-50 text-gray-500 group-hover:bg-white group-hover:text-amber-600 group-hover:shadow-sm transition-all duration-200">
+                                <item.icon size={18} />
+                              </div>
+                              <span className="font-medium text-sm">{item.name}</span>
+                            </div>
+                            {item.badge && item.badge > 0 && (
+                              <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                                {item.badge}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="p-2 border-t border-gray-50 bg-gray-50/50">
                         <button
-                          key={index}
-                          onClick={() => handleNavigation(item.path)}
-                          className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                          onClick={handleLogout}
+                          className="w-full flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors text-left group"
                         >
-                          <div className="flex items-center space-x-3">
-                            <item.icon size={16} />
-                            <span>{item.name}</span>
-                          </div>
-                          {item.badge && item.badge > 0 && (
-                            <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                              {item.badge}
-                            </span>
-                          )}
+                          <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+                          <span className="font-medium text-sm">Logout</span>
                         </button>
-                      ))}
-
-                      <div className="border-t border-gray-100 my-1"></div>
-
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-left"
-                      >
-                        <LogOut size={16} />
-                        <span>Logout</span>
-                      </button>
-
-                      <button
-                        onClick={handleDeleteAccount}
-                        className="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-left"
-                      >
-                        <Trash2 size={16} />
-                        <span>Delete Account</span>
-                      </button>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-4">
                 <button
                   onClick={() => handleLogin('/sign-in')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="text-gray-600 hover:text-gray-900 font-semibold text-sm transition-colors py-2 px-4 hover:bg-gray-50 rounded-lg"
                 >
-                  Login
+                  Log in
                 </button>
                 <button
                   onClick={() => handleRegister('/sign-up')}
-                  className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                  className="bg-gray-900 text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 hover:shadow-lg transition-all duration-200 font-medium text-sm"
                 >
-                  Join Now
+                  Sign up
                 </button>
               </div>
             )}
-          </div>
 
-          <button
+            <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-gray-700 hover:text-blue-600 p-2"
+            className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-2 space-y-1 pb-4 border-t border-gray-100 pt-4">
-            {/* Current Location (Mobile) */}
-            {isSignedIn && (
-              <div className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-lg mx-3 mb-3">
-                <MapPin size={14} className="text-blue-500" />
-                <span className="truncate">{currentLocationName}</span>
-              </div>
-            )}
+          <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 shadow-xl animate-in slide-in-from-top-5 duration-200 z-40">
+            <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
 
-            {navLinks.map((link) => (
-              <div key={link.name}>
-                {link.children ? (
-                  <div className="mx-3 mb-1">
-                    <div className="flex items-center space-x-3 px-3 py-3 text-gray-700 font-medium">
-                      <link.icon size={20} />
-                      <span>{link.name}</span>
-                    </div>
-                    <div className="pl-4 border-l-2 border-gray-100 ml-5 space-y-1">
-                      {link.children.map((child) => (
-                        <button
-                          key={child.name}
-                          onClick={() => {
-                            handleNavigation(child.path);
-                            setIsMenuOpen(false);
-                          }}
-                          className="flex items-center space-x-3 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg w-full text-left text-sm"
-                        >
-                          <child.icon size={16} />
-                          <span>{child.name}</span>
-                        </button>
-                      ))}
-                    </div>
+              {isSignedIn && (
+                <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  <div className="p-2 bg-white rounded-full shadow-sm">
+                     <MapPin size={18} className="text-amber-500" />
                   </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      handleNavigation(link.path);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`relative flex items-center space-x-3 px-3 py-3 rounded-lg mx-3 transition-colors w-full text-left ${
-                      location.pathname === link.path ? 'bg-amber-50 text-amber-600' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <link.icon size={20} />
-                    <span className="font-medium">{link.name}</span>
-                    {link.badge && link.badge > 0 && (
-                      <span className=" bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {link.badge}
-                      </span>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Current Location</p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">{currentLocationName}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                {navLinks.map((link) => (
+                  <div key={link.name}>
+                    {link.children ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-3 px-4 py-3 text-gray-900 font-semibold bg-gray-50/50 rounded-xl">
+                          <link.icon size={20} className="text-gray-500" />
+                          <span>{link.name}</span>
+                        </div>
+                        <div className="pl-4 ml-4 border-l-2 border-gray-100 space-y-1">
+                          {link.children.map((child) => (
+                            <button
+                                key={child.name}
+                                onClick={() => {
+                                  handleNavigation(child.path);
+                                  setIsMenuOpen(false);
+                                }}
+                                className="flex items-center space-x-3 px-4 py-2.5 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg w-full text-left transition-colors"
+                              >
+                                <child.icon size={18} />
+                                <span className="text-sm font-medium">{child.name}</span>
+                              </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          handleNavigation(link.path);
+                          setIsMenuOpen(false);
+                        }}
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl w-full text-left transition-all duration-200 ${
+                          location.pathname === link.path
+                            ? 'bg-amber-50 text-amber-600 font-semibold'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <link.icon size={20} />
+                        <span>{link.name}</span>
+                        {link.badge && link.badge > 0 && (
+                          <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                            {link.badge}
+                          </span>
+                        )}
+                      </button>
                     )}
-                  </button>
-                )}
+                  </div>
+                ))}
               </div>
-            ))}
 
-            <button
-              onClick={() => {
-                handleNavigation('/create-activity');
-                setIsMenuOpen(false);
-              }}
-              className="flex align-center space-x-3 px-4 py-3 mx-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 w-full"
-            >
-              <Plus size={20} />
-              <span className="font-medium text-center mt-[-1px]">Create Activity</span>
-            </button>
-
-            {isSignedIn ? (
-              <div className="space-y-1 border-t border-gray-100 mx-3 pt-2">
-                {/* Mobile Profile Menu Items */}
-                {profileMenuItems.map((item, index) => (
+              {isSignedIn ? (
+                <>
                   <button
-                    key={index}
                     onClick={() => {
-                      handleNavigation(item.path);
+                      handleNavigation('/create-activity');
                       setIsMenuOpen(false);
                     }}
-                    className="flex items-center space-x-3 px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full text-left"
+                    className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-3.5 rounded-xl font-semibold shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
                   >
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
+                    <Plus size={20} />
+                    <span>Create Activity</span>
                   </button>
-                ))}
 
-                {/* Notifications (Mobile) */}
-                <button className="flex items-center space-x-3 px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg w-full">
-                  <Bell size={20} />
-                  <span>Notifications</span>
-                  {notificationCount > 0 && (
-                    <span className=" bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center text-left">
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full"
-                >
-                  <LogOut size={20} />
-                  <span>Logout</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    handleDeleteAccount();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full"
-                >
-                  <Trash2 size={20} />
-                  <span>Delete Account</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2 mt-4 pt-4 border-t border-gray-100 mx-3">
-                <button
-                  onClick={() => {
-                    handleLogin('/sign-in');
-                    setIsMenuOpen(false);
-                  }}
-                  className="block px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium w-full text-left"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => {
-                    handleRegister('/sign-up');
-                    setIsMenuOpen(false);
-                  }}
-                  className="block px-3 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 font-medium text-center w-full"
-                >
-                  Join TravelBuddy
-                </button>
-              </div>
-            )}
+                  <div className="pt-4 border-t border-gray-100 space-y-1">
+                    <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Account</p>
+                    {profileMenuItems.map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          handleNavigation(item.path);
+                          setIsMenuOpen(false);
+                        }}
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl w-full text-left font-medium"
+                      >
+                        <item.icon size={20} className="text-gray-400" />
+                        <span>{item.name}</span>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl w-full text-left font-medium"
+                    >
+                      <LogOut size={20} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      handleLogin('/sign-in');
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex justify-center items-center px-4 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Log in
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleRegister('/sign-up');
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex justify-center items-center px-4 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                     Sign up
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { Calendar, Clock, MapPin, DollarSign, Users, Image as ImageIcon, AlignLe
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const containerStyle = {
   width: "100%",
@@ -16,8 +17,19 @@ const libraries = ["places"];
 
 export default function CreateActivity() {
   const navigate = useNavigate();
+  const { profile } = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const mapRef = useRef(null);
+
+  React.useEffect(() => {
+    // Check if user has a subscription
+    // Assuming 'Free' is also a valid planType if they went through the process,
+    // or if the requirement is STRICTLY paid, change condition to: profile?.planType === 'Free'
+    if (profile && !profile.planType) {
+      toast.error("Please select a subscription plan to create activities.");
+      navigate("/subscription");
+    }
+  }, [profile, navigate]);
 
   // Form State
   const [formData, setFormData] = useState({

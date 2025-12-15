@@ -12,6 +12,7 @@ import NearByTravellers from "./components/NearByTravellers";
 import NearHotels from "./components/NearHotels";
 import TouristPlaces from "./components/TouristPlaces";
 import CreateActivity from "./pages/Activity/createActivity";
+import BuySubscription from "./pages/Activity/buySubscription";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
 
        {/* Activity Routes */}
        <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
+       <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
      </Route>
     </Routes>
   );
