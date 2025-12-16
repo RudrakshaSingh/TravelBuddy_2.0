@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, Star, Zap, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { buySubscription } from '../../redux/slices/userSlice';
+import { useAppDispatch } from '../../redux/hooks';
+import { useAuth } from '@clerk/clerk-react';
+import { load } from '@cashfreepayments/cashfree-js';
+import toast from 'react-hot-toast';
 
 const BuySubscription = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
   const [selectedPlan, setSelectedPlan] = useState('Monthly');
+  const dispatch = useAppDispatch();
+  const { getToken } = useAuth();
+
+  let cashfree;
+  useEffect(() => {
+    const initializeSDK = async () => {
+        cashfree = await load({
+            mode: "sandbox" // Change to "production" for live
+        });
+    };
+    initializeSDK();
+  }, []);
 
   const plans = [
     {
       name: 'Free Trial',
-      price: '₹0',
+      price: 0,
       period: '/ one time',
       description: 'Experience TravelBuddy risk-free',
+      id: 'free_trial',
       features: [
         { name: 'Create 1 activity for free', included: true },
         { name: 'Available only once per user', included: true },
@@ -24,9 +42,10 @@ const BuySubscription = () => {
     },
     {
       name: 'One-Time Activity',
-      price: '₹99',
+      price: 99,
       period: '/ activity',
       description: 'Ideal for occasional users',
+      id: 'single',
       features: [
         { name: 'Create single activity', included: true },
         { name: 'No recurring charges', included: true },
@@ -38,7 +57,8 @@ const BuySubscription = () => {
     },
     {
       name: billingCycle === 'monthly' ? 'Monthly' : 'Yearly',
-      price: billingCycle === 'monthly' ? '₹499' : '₹4999',
+      id: billingCycle === 'monthly' ? 'monthly' : 'yearly',
+      price: billingCycle === 'monthly' ? 499 : 4999,
       period: billingCycle === 'monthly' ? '/ month' : '/ year',
       description: billingCycle === 'monthly' ? 'Best suited for frequent users' : 'Best value offer',
       features: [
@@ -52,11 +72,39 @@ const BuySubscription = () => {
     }
   ];
 
-  const handleSubscribe = (planName) => {
-    // TODO: Implement payment logic
-    console.log(`Subscribed to ${planName} plan`);
-    // Example: navigate to home or activity creation after success
-    // navigate('/create-activity');
+  const handleSubscribe = async (plan) => {
+    if (plan.price === 0) {
+        toast.success("Free trial activated!");
+        navigate('/create-activity');
+        return;
+    }
+
+    try {
+      const result = await dispatch(buySubscription({
+          getToken,
+          amount: plan.price,
+          planType: plan.name
+      })).unwrap();
+
+      if (result && result.payment_session_id) {
+          const checkoutOptions = {
+              paymentSessionId: result.payment_session_id,
+              redirectTarget: "_self",
+          };
+          if (cashfree) {
+            cashfree.checkout(checkoutOptions);
+          } else {
+             // Fallback if cashfree didn't load yet
+             const cf = await load({ mode: "sandbox" });
+             cf.checkout(checkoutOptions);
+          }
+      } else {
+          toast.error("Failed to initiate payment. Please try again.");
+      }
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast.error(error.message || "Something went wrong");
+    }
   };
 
   return (
@@ -117,7 +165,7 @@ const BuySubscription = () => {
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{plan.description}</p>
               <div className="flex items-baseline">
-                <span className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{plan.price}</span>
+                <span className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">₹{plan.price}</span>
                 <span className="text-gray-500 ml-1">{plan.period}</span>
               </div>
             </div>
@@ -144,7 +192,7 @@ const BuySubscription = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleSubscribe(plan.name);
+                handleSubscribe(plan);
               }}
               className={`w-full py-4 px-6 rounded-xl font-bold text-center transition-transform active:scale-95 shadow-lg ${
                 selectedPlan === plan.name

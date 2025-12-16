@@ -64,6 +64,35 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
+export const buySubscription = createAsyncThunk(
+  'user/buySubscription',
+  async({getToken, amount,planType},{rejectWithValue}) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      const response = await userService.buySubscription(authApi, {amount,planType});
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: error.message || 'Failed to buy subscription' }
+      );
+    }
+  }
+);
+
+export const verifySubscription = createAsyncThunk(
+  'user/verifySubscription',
+  async({getToken, orderId},{rejectWithValue}) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      const response = await userService.verifyPayment(authApi, orderId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+         error.response?.data || { message: error.message || 'Failed to verify subscription' }
+      );
+    }
+  }
+);
 
 // User slice
 const userSlice = createSlice({
@@ -97,7 +126,7 @@ const userSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isRegistering = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload || 'Registration failed';
       })
       // Fetch Profile
       .addCase(fetchProfile.pending, (state) => {
@@ -112,7 +141,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message || 'Failed to fetch profile';
+        state.error = action.payload?.message || action.payload || 'Failed to fetch profile';
         state.errorStatus = action.payload?.status || null;
       })
       // Update Profile
@@ -127,8 +156,36 @@ const userSlice = createSlice({
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.isUpdating = false;
-        state.error = action.payload;
-      });
+        state.error = action.payload?.message || action.payload || 'Failed to update profile';
+      })
+      .addCase(buySubscription.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(buySubscription.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // buySubscription just creates order, doesn't update profile yet
+        state.error = null;
+      })
+      .addCase(buySubscription.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || action.payload || 'Failed to buy subscription';
+        state.errorStatus = action.payload?.status || null;
+      })
+      .addCase(verifySubscription.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifySubscription.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.profile = action.payload.user; // Backend returns { user, payment, ... }
+        state.error = null;
+      })
+      .addCase(verifySubscription.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || action.payload || 'Failed to verify subscription';
+        state.errorStatus = action.payload?.status || null;
+      })
   },
 });
 

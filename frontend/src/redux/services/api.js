@@ -50,6 +50,16 @@ export const userService = {
     const response = await authApi.patch('/users/update-profile', profileData);
     return response.data;
   },
+
+  buySubscription: async (authApi, subscriptionData) => {
+    const response = await authApi.post('/subscription/create-order', subscriptionData);
+    return response.data;
+  },
+
+  verifyPayment: async (authApi, orderId) => {
+    const response = await authApi.post('/subscription/verify-payment', { orderId });
+    return response.data;
+  },
 };
 
 export default api;

@@ -138,7 +138,7 @@ function NavBar() {
   };
   const handleCreateActivity = () => {
   const hasActivePlan =
-  userProfile && (userProfile.planType === "MONTHLY" || userProfile.planType === "YEARLY") &&
+  userProfile && (userProfile.planType === "Monthly" || userProfile.planType === "Yearly") &&
   new Date(userProfile.planEndDate) > new Date();
 
   if(hasActivePlan){

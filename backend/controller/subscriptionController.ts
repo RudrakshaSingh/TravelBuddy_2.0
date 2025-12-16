@@ -4,21 +4,31 @@ import { Request, Response } from "express";
 import { Payment } from "../models/paymentModel";
 import { User } from "../models/userModel";
 
-const CF_APP_ID = process.env.CASHFREE_APP_ID;
-const CF_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
-const CF_ENV = process.env.CASHFREE_ENV || "TEST"; // TEST or PROD
-
-const BASE_URL = CF_ENV === "PROD" 
-  ? "https://api.cashfree.com/pg" 
-  : "https://sandbox.cashfree.com/pg";
+const getCashfreeConfig = () => {
+    const CF_APP_ID = process.env.CASHFREE_APP_ID;
+    const CF_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
+    const CF_ENV = process.env.CASHFREE_ENV || "TEST"; // TEST or PROD
+    const BASE_URL = CF_ENV === "PROD"
+      ? "https://api.cashfree.com/pg"
+      : "https://sandbox.cashfree.com/pg";
+    return { CF_APP_ID, CF_SECRET_KEY, BASE_URL };
+};
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
+    const { CF_APP_ID, CF_SECRET_KEY, BASE_URL } = getCashfreeConfig();
     const { amount, planType } = req.body;
     const userId = req.user?._id;
 
+    console.log("Create Order Request:", { amount, planType, userId });
+
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!CF_APP_ID || !CF_SECRET_KEY) {
+        console.error("Cashfree Creds missing");
+        return res.status(500).json({ message: "Payment configuration missing" });
     }
 
     const user = await User.findById(userId);
@@ -36,7 +46,7 @@ export const createOrder = async (req: Request, res: Response) => {
         customer_id: userId.toString(),
         customer_email: "user@example.com", // You might want to store email in User model too
         customer_phone: user.mobile,
-        customer_name: "TravelBuddy User" 
+        customer_name: "TravelBuddy User"
       },
       order_meta: {
         return_url: `${process.env.FRONTEND_URL}/payment-status?order_id=${orderId}`
@@ -78,6 +88,7 @@ export const createOrder = async (req: Request, res: Response) => {
 
 export const verifyPayment = async (req: Request, res: Response) => {
   try {
+    const { CF_APP_ID, CF_SECRET_KEY, BASE_URL } = getCashfreeConfig();
     const { orderId } = req.body;
     const userId = req.user?._id;
 
@@ -101,30 +112,30 @@ export const verifyPayment = async (req: Request, res: Response) => {
     if (paymentRecord) {
       paymentRecord.orderStatus = orderStatus;
       paymentRecord.rawResponse = orderData;
-      
+
       // If there are payment details in the response
       if (orderData.payments && orderData.payments.length > 0) {
         const paymentDetails = orderData.payments[0];
         paymentRecord.paymentStatus = paymentDetails.payment_status;
-        paymentRecord.paymentMethod = paymentDetails.payment_method?.card?.channel || 
-                                       paymentDetails.payment_method?.upi?.channel || 
-                                       paymentDetails.payment_method?.netbanking?.channel || 
+        paymentRecord.paymentMethod = paymentDetails.payment_method?.card?.channel ||
+                                       paymentDetails.payment_method?.upi?.channel ||
+                                       paymentDetails.payment_method?.netbanking?.channel ||
                                        "Unknown";
         paymentRecord.paymentTime = paymentDetails.payment_time ? new Date(paymentDetails.payment_time) : undefined;
         paymentRecord.cfPaymentId = paymentDetails.cf_payment_id;
         paymentRecord.bankReference = paymentDetails.bank_reference;
       }
-      
+
       await paymentRecord.save();
     }
 
     if (orderStatus === "PAID") {
       const planType = orderData.order_tags?.planType;
-      
+
       const user = await User.findById(userId);
       if (user) {
         const now = new Date();
-        
+
         if (planType === "Single") {
             user.remainingActivityCount = (user.remainingActivityCount || 0) + 1;
              if (user.planType === "None") {
@@ -134,14 +145,14 @@ export const verifyPayment = async (req: Request, res: Response) => {
             user.planType = "Monthly";
             user.planStartDate = now;
             user.planEndDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-            user.hasUsedFreeTrial = true; 
+            user.hasUsedFreeTrial = true;
         } else if (planType === "Yearly") {
             user.planType = "Yearly";
             user.planStartDate = now;
             user.planEndDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
             user.hasUsedFreeTrial = true;
         }
-        
+
         await user.save();
         res.status(200).json({ status: "PAID", message: "Subscription updated successfully", user, payment: paymentRecord });
       } else {
