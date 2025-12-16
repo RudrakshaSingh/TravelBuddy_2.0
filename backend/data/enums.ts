@@ -78,3 +78,6 @@ export const INTERESTS = [
   "Skiing/Snowboarding", "Solo Travel", "Sports", "Volunteering",
   "Wellness & Spa", "Wildlife", "Yoga"
 ];
+
+export const SUBSCRIPTION_PLANS = ["None", "Single", "Monthly", "Yearly"];
+

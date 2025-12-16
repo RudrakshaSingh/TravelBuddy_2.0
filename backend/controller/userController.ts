@@ -53,7 +53,30 @@ export const registerUser = asyncHandler(
 
 export const getProfile = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    return res.status(200).json(new ApiResponse(200, req.user as any, "User Profile Fetched Successfully"));
+    const userId = req.user?._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+         throw new ApiError(404, "User not found");
+    }
+
+    // Lazy check for subscription expiration
+    if (user.planType === "Monthly" || user.planType === "Yearly") {
+        if (user.planEndDate && new Date() > new Date(user.planEndDate)) {
+             user.planType = "None";
+             user.planEndDate = null;
+             user.planStartDate = null;
+             await user.save();
+        }
+    }
+    
+    // Check if Single plan has consumed all activities (though this should be handled at usage time)
+    if (user.planType === "Single" && user.remainingActivityCount <= 0) {
+        user.planType = "None";
+        await user.save();
+    }
+
+    return res.status(200).json(new ApiResponse(200, user, "User Profile Fetched Successfully"));
   }
 );
 

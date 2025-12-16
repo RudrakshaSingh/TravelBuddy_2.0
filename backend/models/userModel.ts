@@ -71,7 +71,8 @@ const userSchema = new Schema<IUser>({
   hasUsedFreeTrial: { type: Boolean, default: false },
   planStartDate: { type: Date, default: null },
   planEndDate: { type: Date, default: null },
-  planType: { type: String, default: "FREE_TRIAL" },
+  planType: { type: String, enum: ["None", "Single", "Monthly", "Yearly"], default: "None" },
+  remainingActivityCount: { type: Number, default: 0 },
   isOnline: { type: Boolean, default: false },
 
   lastSeen: { type: Date, default: Date.now },
