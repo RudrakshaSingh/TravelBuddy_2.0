@@ -13,9 +13,7 @@ export const geoPointSchema = z.object({
 
 export const futureDestinationSchema = z.object({
   name: z.string(),
-  location: geoPointSchema,
-  startDate: z.date().optional(),
-  endDate: z.date().optional(),
+  coordinates: z.tuple([z.number(), z.number()]).default([0, 0]),
 });
 
 export const userZodSchema = z.object({

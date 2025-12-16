@@ -1,5 +1,4 @@
 {
-    "workbench.preferredDarkColorTheme": "Visual Studio Dark",
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
     }

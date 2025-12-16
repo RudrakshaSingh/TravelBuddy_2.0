@@ -30,6 +30,12 @@ export const registerUser = asyncHandler(
        throw new ApiError(403, "Forbidden: Clerk ID mismatch");
     }
 
+    // Check if user already exists by mobile
+    const existingMobileUser = await User.findOne({ mobile });
+    if (existingMobileUser) {
+      throw new ApiError(409, "User with this mobile number already exists");
+    }
+
     const user = await User.create({
       clerk_id,
       mobile,
