@@ -39,6 +39,7 @@ export const fetchProfile = createAsyncThunk(
     try {
       const authApi = createAuthenticatedApi(getToken);
       const response = await userService.getProfile(authApi);
+      console.log('response', response);
       return response;
     } catch (error) {
       return rejectWithValue({

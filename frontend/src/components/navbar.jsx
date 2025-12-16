@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut,useClerk, useUser } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useClerk, useUser, useAuth } from '@clerk/clerk-react';
 import {
   Activity,
   Bell,
@@ -22,9 +22,10 @@ import {
 import  { useEffect, useRef,useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import ReverseGeocode from '../helpers/reverseGeoCode';
-
 import { useSocketContext } from '../context/socketContext';
+import { fetchProfile } from '../redux/slices/userSlice';
 
 
 
@@ -32,16 +33,28 @@ function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
-  const { user } = useUser();
+
+  const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
+
+  const dispatch = useDispatch();
+  const { profile: userProfile } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      dispatch(fetchProfile({ getToken }));
+    }
+  }, [isSignedIn, dispatch, getToken]);
+
+  console.log('Redux userProfile:', userProfile);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useClerk();
-  const { user:  isSignedIn } = useUser();
-const currentUser  = {
+
+  const currentUser = {
     fullName: user?.fullName,
     profilePicture: user?.imageUrl,
-
   };
 
 
@@ -55,6 +68,7 @@ const currentUser  = {
 
   const { socket } = useSocketContext();
   const [currentLocationName, setCurrentLocationName] = useState('Locating...');
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -124,8 +138,9 @@ const currentUser  = {
   };
   const handleCreateActivity = () => {
   const hasActivePlan =
-  (user.activePlan === "MONTHLY" || user.activePlan === "YEARLY") &&
-  user.planEndDate > new Date();
+  userProfile && (userProfile.planType === "MONTHLY" || userProfile.planType === "YEARLY") &&
+  new Date(userProfile.planEndDate) > new Date();
+
   if(hasActivePlan){
     navigate('/create-activity');
     setIsProfileMenuOpen(false);
