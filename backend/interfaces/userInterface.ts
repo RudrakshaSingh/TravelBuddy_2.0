@@ -1,9 +1,17 @@
-// src/interfaces/user.interface.ts
 import { Document } from "mongoose";
+
+import {
+  COUNTRIES,
+  GENDERS,
+  INTERESTS,
+  LANGUAGE_LEVELS,
+  SUBSCRIPTION_PLANS,
+  TRAVEL_STYLES,
+} from "../data/enums";
 
 export interface ILanguage {
   name: string;
-  level: "Native" | "Beginner" | "Intermediate" | "Advanced";
+  level: (typeof LANGUAGE_LEVELS)[number];
 }
 
 export interface IGeoPoint {
@@ -20,27 +28,20 @@ export interface IUser extends Document {
   clerk_id: string;
   mobile: string;
   dob: Date;
-  gender: "Male" | "Female" | "Other";
-  profileVisibility? : "Public" | "Private";
+  gender: (typeof GENDERS)[number];
+  profileVisibility?: "Public" | "Private";
 
-  travelStyle:
-    | "Solo"
-    | "Group"
-    | "Adventure"
-    | "Luxury"
-    | "Backpacking"
-    | "Business"
-    | "Family";
+  travelStyle: (typeof TRAVEL_STYLES)[number];
 
   languages?: ILanguage[];
 
   bio?: string;
   currentLocation?: IGeoPoint;
-  nationality: string;
+  nationality: (typeof COUNTRIES)[number];
 
   futureDestinations?: IFutureDestination[];
 
-  interests?: string[];
+  interests?: (typeof INTERESTS)[number][];
 
   socialLinks?: {
     instagram?: string;
@@ -58,9 +59,9 @@ export interface IUser extends Document {
   friends?: string[];
   friendRequests?: string[];
   sentFriendRequests?: string[];
-  hasUsedFreeTrial?: boolean;
-  planStartDate?: Date;
-  planEndDate?: Date;
-  planType?: string;
+  hasUsedFreeTrial: boolean;
+  planStartDate: Date | null;
+  planEndDate: Date | null;
+  planType: (typeof SUBSCRIPTION_PLANS)[number];
+  remainingActivityCount: number;
 }
-

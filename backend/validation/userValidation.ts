@@ -1,9 +1,17 @@
 // src/validation/user.validation.ts
 import { z } from "zod";
 
+import {
+  COUNTRIES,
+  GENDERS,
+  INTERESTS,
+  LANGUAGE_LEVELS,
+  TRAVEL_STYLES,
+} from "../data/enums";
+
 export const languageSchema = z.object({
   name: z.string(),
-  level: z.enum(["Beginner", "Intermediate", "Advanced"]).default("Beginner"),
+  level: z.enum(LANGUAGE_LEVELS as [string, ...string[]]).default("Beginner"),
 });
 
 export const geoPointSchema = z.object({
@@ -25,18 +33,10 @@ export const userZodSchema = z.object({
   profilePicture: z.string().optional(),
 
   dob: z.date(),
-  gender: z.enum(["Male", "Female", "Other"]),
+  gender: z.enum(GENDERS as [string, ...string[]]),
 
   travelStyle: z
-    .enum([
-      "Solo",
-      "Group",
-      "Adventure",
-      "Luxury",
-      "Backpacking",
-      "Business",
-      "Family",
-    ])
+    .enum(TRAVEL_STYLES as [string, ...string[]])
     .default("Solo"),
 
   languages: z.array(languageSchema).optional(),
@@ -45,11 +45,11 @@ export const userZodSchema = z.object({
 
   currentLocation: geoPointSchema.optional(),
 
-  nationality: z.string().default("Not Specified"),
+  nationality: z.enum(COUNTRIES as [string, ...string[]]).default("Not Specified"),
 
   futureDestinations: z.array(futureDestinationSchema).optional(),
 
-  interests: z.array(z.string()).optional(),
+  interests: z.array(z.enum(INTERESTS as [string, ...string[]])).optional(),
 
   socialLinks: z
     .object({

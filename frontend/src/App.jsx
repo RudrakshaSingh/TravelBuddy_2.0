@@ -2,17 +2,17 @@ import { Navigate,Route, Routes } from "react-router-dom";
 
 import AuthGuard from "./components/AuthGuard";
 import Layout from "./components/layout";
+import NearByTravellers from "./components/NearByTravellers";
+import NearHotels from "./components/NearHotels";
+import TouristPlaces from "./components/TouristPlaces";
+import AboutUs from "./pages/aboutUs";
+import BuySubscription from "./pages/Activity/buySubscription";
+import CreateActivity from "./pages/Activity/createActivity";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import ProfilePage from "./pages/User/profile";
 import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
-import AboutUs from "./pages/aboutUs";
 import HomePage from "./pages/userHome";
-import NearByTravellers from "./components/NearByTravellers";
-import NearHotels from "./components/NearHotels";
-import TouristPlaces from "./components/TouristPlaces";
-import CreateActivity from "./pages/Activity/createActivity";
-import BuySubscription from "./pages/Activity/buySubscription";
 
 function App() {
   return (
