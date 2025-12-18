@@ -252,6 +252,8 @@ export default function CreateActivity() {
 
     setIsGenerating(true);
     try {
+
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/users/api-description`,
         {
@@ -261,6 +263,8 @@ export default function CreateActivity() {
       );
 
       const generatedText = response.data.data;
+      console.log("Generated Text:", generatedText);
+
       if (generatedText) {
         setFormData(prev => ({
           ...prev,

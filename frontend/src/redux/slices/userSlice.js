@@ -162,7 +162,7 @@ const userSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(buySubscription.fulfilled, (state, action) => {
+      .addCase(buySubscription.fulfilled, (state) => {
         state.isLoading = false;
         // buySubscription just creates order, doesn't update profile yet
         state.error = null;

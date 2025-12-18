@@ -53,6 +53,8 @@ const userSchema = new Schema<IUser>({
 
   bio: { type: String, default: "Not Updated Yet" },
 
+  coverImage: { type: String, default: "" },
+
   currentLocation: geoPointSchema,
 
   nationality: { type: String, enum: COUNTRIES, default: "Not Specified" },

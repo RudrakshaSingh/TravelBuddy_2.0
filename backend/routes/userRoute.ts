@@ -12,7 +12,6 @@ router.post("/register", verifyClerk, upload.none(), registerUser);
 // These routes require full auth (Clerk + MongoDB profile)
 router.get("/profile", requireProfile, getProfile);
 router.patch("/update-profile", requireProfile, updateProfile);
-router.post("/api-description",generateDescription)
 
 export default router;
 

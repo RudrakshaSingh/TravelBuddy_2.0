@@ -7,6 +7,7 @@ import {
   Facebook,
   Globe,
   Heart,
+  ImagePlus,
   Instagram,
   Languages,
   Linkedin,
@@ -64,6 +65,7 @@ export default function ProfilePage() {
     lastName: '',
     file: null,
   });
+  const [coverImageFile, setCoverImageFile] = useState(null);
 
   // Search/Dropdown States
   const [nationalitySearch, setNationalitySearch] = useState('');
@@ -191,6 +193,17 @@ export default function ProfilePage() {
     }
   };
 
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Cover image size should be less than 5MB');
+        return;
+      }
+      setCoverImageFile(file);
+    }
+  };
+
   const validateForm = () => {
     if (!editData.mobile || editData.mobile.length !== 10) return 'Mobile must be 10 digits';
     if (!editData.dob) return 'Date of Birth is required';
@@ -238,10 +251,14 @@ export default function ProfilePage() {
         await Promise.all(promises);
       }
 
-      // 2. Update Backend Data
-      const response = await updateProfile(editData);
+      // 2. Update Backend Data (include cover image file if selected)
+      const profilePayload = coverImageFile 
+        ? { ...editData, coverImageFile } 
+        : editData;
+      const response = await updateProfile(profilePayload);
       setProfile(response.data);
       setIsEditing(false);
+      setCoverImageFile(null);
       toast.success('Profile updated successfully!');
     } catch (err) {
       console.error(err);
@@ -254,6 +271,7 @@ export default function ProfilePage() {
   const handleCancel = () => {
     setEditData(profile);
     setIsEditing(false);
+    setCoverImageFile(null);
     setClerkUpdates({
         firstName: clerkUser.firstName || '',
         lastName: clerkUser.lastName || '',
@@ -306,7 +324,41 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <div className="bg-white rounded-3xl shadow-xl overflow-visible mb-6 relative">
-          <div className="h-32 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 rounded-t-3xl"></div>
+          {/* Cover Image Section */}
+          <div className="h-32 rounded-t-3xl relative overflow-hidden group">
+            {/* Cover Image Display */}
+            {coverImageFile ? (
+              <img 
+                src={URL.createObjectURL(coverImageFile)} 
+                alt="Cover Preview" 
+                className="w-full h-full object-cover"
+              />
+            ) : profile?.coverImage ? (
+              <img 
+                src={profile.coverImage} 
+                alt="Cover" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600" />
+            )}
+            
+            {/* Edit Cover Image Overlay */}
+            {isEditing && (
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <div className="flex items-center gap-2 text-white">
+                  <ImagePlus size={24} />
+                  <span className="font-medium">Change Cover</span>
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleCoverImageChange}
+                />
+              </label>
+            )}
+          </div>
           <div className="px-8 pb-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-16">
               <div className="flex items-end gap-6 relative">

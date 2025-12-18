@@ -1,12 +1,14 @@
-import { SignedIn, SignedOut, useClerk, useUser, useAuth } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useAuth,useClerk, useUser } from '@clerk/clerk-react';
 import {
   Activity,
+  Bed,
   Bell,
   Calendar,
   ChevronDown,
   Compass,
   Globe,
   Info,
+  Landmark,
   Link,
   LogOut,
   MapPin,
@@ -16,15 +18,14 @@ import {
   Trash2,
   User,
   Users,
-  Bed,
-  Landmark,
   X} from 'lucide-react';
 import  { useEffect, useRef,useState } from 'react';
 import toast from 'react-hot-toast';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import ReverseGeocode from '../helpers/reverseGeoCode';
+import { useLocation,useNavigate } from 'react-router-dom';
+
 import { useSocketContext } from '../context/socketContext';
+import ReverseGeocode from '../helpers/reverseGeoCode';
 import { fetchProfile } from '../redux/slices/userSlice';
 
 

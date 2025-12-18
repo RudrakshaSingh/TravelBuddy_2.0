@@ -36,6 +36,7 @@ export interface IUser extends Document {
   languages?: ILanguage[];
 
   bio?: string;
+  coverImage?: string;
   currentLocation?: IGeoPoint;
   nationality: (typeof COUNTRIES)[number];
 

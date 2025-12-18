@@ -1,4 +1,3 @@
-// src/validation/user.validation.ts
 import { z } from "zod";
 
 import {
@@ -6,62 +5,88 @@ import {
   GENDERS,
   INTERESTS,
   LANGUAGE_LEVELS,
+  LANGUAGES,
   TRAVEL_STYLES,
 } from "../data/enums";
 
+// Reusable sub-schemas
 export const languageSchema = z.object({
-  name: z.string(),
-  level: z.enum(LANGUAGE_LEVELS as [string, ...string[]]).default("Beginner"),
-});
-
-export const geoPointSchema = z.object({
-  type: z.literal("Point").default("Point"),
-  coordinates: z.tuple([z.number(), z.number()]).default([0, 0]),
+  name: z.enum(LANGUAGES as [string, ...string[]]),
+  level: z.enum(LANGUAGE_LEVELS as [string, ...string[]]),
 });
 
 export const futureDestinationSchema = z.object({
   name: z.string(),
-  coordinates: z.tuple([z.number(), z.number()]).default([0, 0]),
+  coordinates: z.tuple([z.number(), z.number()]).optional(),
 });
 
-export const userZodSchema = z.object({
-  clerk_id: z.string(),
-  fullName: z.string(),
-  email: z.string().email(),
-  mobile: z.string().min(10).max(10),
+export const socialLinksSchema = z.object({
+  instagram: z.string().optional(),
+  facebook: z.string().optional(),
+  linkedin: z.string().optional(),
+  twitter: z.string().optional(),
+});
 
-  profilePicture: z.string().optional(),
+// Schema for user registration - required fields for initial signup
+export const registerUserSchema = z.object({
+  clerk_id: z.string().min(1, "Clerk ID is required"),
 
-  dob: z.date(),
+  mobile: z
+    .string()
+    .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
+
+  dob: z.string().refine((date) => {
+    const d = new Date(date);
+    return !isNaN(d.getTime()) && d <= new Date();
+  }, "Invalid or future DOB"),
+
   gender: z.enum(GENDERS as [string, ...string[]]),
 
-  travelStyle: z
-    .enum(TRAVEL_STYLES as [string, ...string[]])
-    .default("Solo"),
+  nationality: z.enum(COUNTRIES as [string, ...string[]]),
+
+  languages: z
+    .array(languageSchema)
+    .min(1, "At least one language is required"),
+
+  interests: z
+    .array(z.enum(INTERESTS as [string, ...string[]]))
+    .optional(),
+
+  socialLinks: socialLinksSchema.optional(),
+
+  bio: z.string().max(500, "Bio cannot exceed 500 characters").optional(),
+});
+
+// Schema for updating profile - all fields optional
+export const updateProfileSchema = z.object({
+  mobile: z
+    .string()
+    .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits")
+    .optional(),
+
+  dob: z
+    .string()
+    .refine((date) => {
+      const d = new Date(date);
+      return !isNaN(d.getTime()) && d <= new Date();
+    }, "Invalid or future DOB")
+    .optional(),
+
+  gender: z.enum(GENDERS as [string, ...string[]]).optional(),
+
+  nationality: z.enum(COUNTRIES as [string, ...string[]]).optional(),
+
+  travelStyle: z.enum(TRAVEL_STYLES as [string, ...string[]]).optional(),
 
   languages: z.array(languageSchema).optional(),
 
-  bio: z.string().default("Not Updated Yet"),
-
-  currentLocation: geoPointSchema.optional(),
-
-  nationality: z.enum(COUNTRIES as [string, ...string[]]).default("Not Specified"),
+  interests: z
+    .array(z.enum(INTERESTS as [string, ...string[]]))
+    .optional(),
 
   futureDestinations: z.array(futureDestinationSchema).optional(),
 
-  interests: z.array(z.enum(INTERESTS as [string, ...string[]])).optional(),
+  socialLinks: socialLinksSchema.optional(),
 
-  socialLinks: z
-    .object({
-      instagram: z.string().optional(),
-      facebook: z.string().optional(),
-      linkedin: z.string().optional(),
-    })
-    .optional(),
-
-  isOnline: z.boolean().default(false),
-  lastSeen: z.date().optional(),
-  socketId: z.string().nullable().optional(),
-
-  JoinActivity: z.array(z.string()).optional(),
+  bio: z.string().max(500, "Bio cannot exceed 500 characters").optional(),
 });
