@@ -8,6 +8,7 @@ import TouristPlaces from "./components/TouristPlaces";
 import AboutUs from "./pages/aboutUs";
 import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
+import ActivityNearMe from "./pages/Activity/getNearByActivity";
 import PaymentStatus from "./pages/paymentStatus";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import ProfilePage from "./pages/User/profile";
@@ -41,6 +42,7 @@ function App() {
 
        {/* Activity Routes */}
        <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
+       <Route path="activities" element={<AuthGuard><ActivityNearMe /></AuthGuard>} />
        <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
        <Route path="payment-status" element={<AuthGuard><PaymentStatus /></AuthGuard>} />
      </Route>

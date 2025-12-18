@@ -194,7 +194,7 @@ function NavBar() {
         { name: 'Nearby Tourist Place', path: '/map/tourist-places', icon: Landmark }
       ]
     },
-    { name: 'Activities', path: '/activity-near-me', icon: Calendar },
+    { name: 'Activities', path: '/activities', icon: Calendar },
     { name: 'About Us', path: '/about-us', icon: Info },
   ];
 
