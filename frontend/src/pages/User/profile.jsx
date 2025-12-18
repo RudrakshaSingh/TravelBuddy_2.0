@@ -252,8 +252,8 @@ export default function ProfilePage() {
       }
 
       // 2. Update Backend Data (include cover image file if selected)
-      const profilePayload = coverImageFile 
-        ? { ...editData, coverImageFile } 
+      const profilePayload = coverImageFile
+        ? { ...editData, coverImageFile }
         : editData;
       const response = await updateProfile(profilePayload);
       setProfile(response.data);
@@ -320,7 +320,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 py-8 px-4 mt-20">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <div className="bg-white rounded-3xl shadow-xl overflow-visible mb-6 relative">
@@ -328,21 +328,21 @@ export default function ProfilePage() {
           <div className="h-32 rounded-t-3xl relative overflow-hidden group">
             {/* Cover Image Display */}
             {coverImageFile ? (
-              <img 
-                src={URL.createObjectURL(coverImageFile)} 
-                alt="Cover Preview" 
+              <img
+                src={URL.createObjectURL(coverImageFile)}
+                alt="Cover Preview"
                 className="w-full h-full object-cover"
               />
             ) : profile?.coverImage ? (
-              <img 
-                src={profile.coverImage} 
-                alt="Cover" 
+              <img
+                src={profile.coverImage}
+                alt="Cover"
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600" />
             )}
-            
+
             {/* Edit Cover Image Overlay */}
             {isEditing && (
               <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
@@ -350,10 +350,10 @@ export default function ProfilePage() {
                   <ImagePlus size={24} />
                   <span className="font-medium">Change Cover</span>
                 </div>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
                   onChange={handleCoverImageChange}
                 />
               </label>
