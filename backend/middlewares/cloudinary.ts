@@ -8,8 +8,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET as string,
 });
 
+interface UploadOptions {
+  folder?: string;
+  width?: number;
+  height?: number;
+  crop?: string;
+  gravity?: string;
+}
+
 const uploadOnCloudinary = async (
-  localFilePath: string
+  localFilePath: string,
+  options?: UploadOptions
 ): Promise<UploadApiResponse | null> => {
   try {
     if (!localFilePath) {
@@ -17,15 +26,24 @@ const uploadOnCloudinary = async (
       return null;
     }
 
-    // Upload file to Cloudinary
-    const response = await cloudinary.uploader.upload(localFilePath, {
+    // Default options for profile pictures
+    const defaultOptions = {
       folder: "travelBuddy",
-      resource_type: "auto",
+      resource_type: "auto" as const,
       width: 250,
       height: 250,
       gravity: "faces",
       crop: "fill",
-    });
+    };
+
+    // Merge with custom options
+    const uploadOptions = {
+      ...defaultOptions,
+      ...options,
+    };
+
+    // Upload file to Cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, uploadOptions);
 
     // Remove local temp file
     await fs.rm(localFilePath);
@@ -47,4 +65,18 @@ const uploadOnCloudinary = async (
   }
 };
 
+// Dedicated function for cover image uploads with appropriate dimensions
+export const uploadCoverImage = async (
+  localFilePath: string
+): Promise<UploadApiResponse | null> => {
+  return uploadOnCloudinary(localFilePath, {
+    folder: "travelBuddy/covers",
+    width: 1200,
+    height: 400,
+    crop: "fill",
+    gravity: "auto",
+  });
+};
+
 export default uploadOnCloudinary;
+

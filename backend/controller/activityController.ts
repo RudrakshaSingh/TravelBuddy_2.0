@@ -1,12 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 
-import { Activity } from "../models/activityModel";
 import { IActivity } from "../interfaces/activityInterface";
+import { Activity } from "../models/activityModel";
 import { User } from "../models/userModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
-
 import { activityZodSchema } from "../validation/activityValidation";
 
 // Create Activity

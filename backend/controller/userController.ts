@@ -1,10 +1,12 @@
 import { NextFunction,Request, Response } from "express";
 
+import { uploadCoverImage } from "../middlewares/cloudinary";
+import deleteFromCloudinaryByUrl from "../middlewares/deleteCloudinary";
 import { User } from "../models/userModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
-import { registerUserSchema } from "../validation/registerUserSchema";
+import { registerUserSchema, updateProfileSchema } from "../validation/userValidation";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -82,6 +84,38 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: Request | any, res: Response, next: NextFunction) => {
+    // When using FormData (for file uploads), nested objects are sent as JSON strings
+    // Parse them back to objects before validation
+    const bodyToValidate = { ...req.body };
+    
+    // Fields that might be JSON strings when sent via FormData
+    const jsonFields = ['languages', 'interests', 'socialLinks', 'futureDestinations'];
+    
+    for (const field of jsonFields) {
+      if (bodyToValidate[field] && typeof bodyToValidate[field] === 'string') {
+        try {
+          bodyToValidate[field] = JSON.parse(bodyToValidate[field]);
+        } catch (e) {
+          // If parsing fails, leave as-is and let Zod validation catch it
+        }
+      }
+    }
+
+    // Validate request body with Zod
+    const parsed = updateProfileSchema.safeParse(bodyToValidate);
+
+    if (!parsed.success) {
+      const errors = parsed.error.issues.map((issue) => issue.message);
+      throw new ApiError(400, "Invalid input data", errors);
+    }
+
+    const userId = req.user?._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
     const {
       mobile,
       dob,
@@ -93,71 +127,39 @@ export const updateProfile = asyncHandler(
       socialLinks,
       languages,
       futureDestinations,
-    } = req.body;
+    } = parsed.data;
 
-    const userId = req.user?._id;
-    const user = await User.findById(userId);
+    // Handle cover image upload
+    if (req.file) {
+      const localFilePath = req.file.path;
+      
+      // Upload new image to Cloudinary
+      const uploadResult = await uploadCoverImage(localFilePath);
+      
+      if (!uploadResult) {
+        throw new ApiError(500, "Failed to upload cover image");
+      }
 
-    if (!user) {
-      throw new ApiError(404, "User not found");
+      // Delete previous cover image from Cloudinary if exists
+      if (user.coverImage) {
+        await deleteFromCloudinaryByUrl(user.coverImage);
+      }
+
+      // Update user's cover image URL
+      user.coverImage = uploadResult.secure_url;
     }
 
-    // Update basic fields if provided
+    // Update fields if provided (already validated by Zod)
     if (mobile) user.mobile = mobile;
     if (dob) user.dob = new Date(dob);
     if (gender) user.gender = gender;
     if (travelStyle) user.travelStyle = travelStyle;
     if (bio) user.bio = bio;
     if (nationality) user.nationality = nationality;
-
-    // Update Array/Object fields
-    if (interests) {
-        if (typeof interests === "string") {
-            try {
-                 user.interests = JSON.parse(interests);
-            } catch (e) {
-                user.interests = [interests];
-            }
-        } else {
-            user.interests = interests;
-        }
-    }
-
-     if (futureDestinations) {
-        if (typeof futureDestinations === "string") {
-            try {
-                 user.futureDestinations = JSON.parse(futureDestinations);
-            } catch (e) {
-                 // handle error
-            }
-        } else {
-             user.futureDestinations = futureDestinations;
-        }
-    }
-
-    if (socialLinks) {
-         if (typeof socialLinks === "string") {
-            try {
-                 user.socialLinks = JSON.parse(socialLinks);
-            } catch (e) {
-                 // handle parsing error or ignore
-            }
-        } else {
-             user.socialLinks = { ...user.socialLinks, ...socialLinks };
-        }
-    }
-
-    if (languages) {
-        if (typeof languages === "string") {
-             try {
-                user.languages = JSON.parse(languages);
-             } catch (e) {
-                // handle error
-             }
-        } else {
-            user.languages = languages;
-        }
-    }
+    if (interests) user.interests = interests;
+    if (languages) user.languages = languages as any;
+    if (futureDestinations) user.futureDestinations = futureDestinations as any;
+    if (socialLinks) user.socialLinks = { ...user.socialLinks, ...socialLinks };
 
     await user.save();
 
@@ -166,6 +168,7 @@ export const updateProfile = asyncHandler(
       .json(new ApiResponse(200, user, "Profile updated successfully"));
   }
 );
+
 
 
 

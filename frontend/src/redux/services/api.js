@@ -47,6 +47,35 @@ export const userService = {
   },
 
   updateProfile: async (authApi, profileData) => {
+    // Check if we have a cover image file to upload
+    if (profileData.coverImageFile) {
+      const formData = new FormData();
+      formData.append('coverImage', profileData.coverImageFile);
+      
+      // Append other fields to FormData
+      Object.keys(profileData).forEach(key => {
+        if (key !== 'coverImageFile') {
+          const value = profileData[key];
+          if (value !== undefined && value !== null) {
+            // Handle objects/arrays by stringifying them
+            if (typeof value === 'object') {
+              formData.append(key, JSON.stringify(value));
+            } else {
+              formData.append(key, value);
+            }
+          }
+        }
+      });
+      
+      const response = await authApi.patch('/users/update-profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    }
+    
+    // No file upload, send as JSON
     const response = await authApi.patch('/users/update-profile', profileData);
     return response.data;
   },

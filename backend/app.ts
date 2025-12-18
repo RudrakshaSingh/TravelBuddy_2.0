@@ -1,15 +1,13 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import dotenv from "dotenv";
 import express, { Application } from "express";
+import morgan from "morgan";
 
 import connectToDB from "./db/db";
 import errorMiddleware from "./middlewares/errorMiddleware";
 import friendRoutes from "./routes/friendRoute";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import userRoutes from "./routes/userRoute";
-
-dotenv.config();
 
 const app: Application = express();
 
@@ -23,6 +21,11 @@ app.use(
     credentials: true,
   })
 );
+
+// HTTP request logger - logs all route hits in dev
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 
 // Middleware
 app.use(cookieParser());
