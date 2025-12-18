@@ -8,6 +8,7 @@ import errorMiddleware from "./middlewares/errorMiddleware";
 import friendRoutes from "./routes/friendRoute";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import userRoutes from "./routes/userRoute";
+import aiRoutes from "./routes/aiRoute";
 
 const app: Application = express();
 
@@ -36,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/users", userRoutes);
 app.use("/friends", friendRoutes);
 app.use("/subscription", subscriptionRoutes);
-app.use("/friends", friendRoutes);
+app.use("/ai", aiRoutes);
 
 // Global Error Handler
 app.use(errorMiddleware);

@@ -3,7 +3,7 @@ import React from 'react';
 
 const AboutUs = () => {
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen ">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-amber-500 to-amber-700 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -11,7 +11,7 @@ const AboutUs = () => {
                 <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
             </svg>
         </div>
-        <div className="relative max-w-7xl mx-auto text-center">
+        <div className="relative max-w-7xl mx-auto text-center mt-10">
           <h1 className="text-4xl font-extrabold text-white sm:text-5xl md:text-6xl tracking-tight">
             About TravelBuddy
           </h1>
