@@ -1,95 +1,638 @@
-import React, { useEffect, useState } from "react";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
+import {
+  MapPin,
+  Hotel, // Changed to Hotel icon
+  Search,
+  Filter,
+  Navigation,
+  Loader2,
+  AlertCircle,
+  LocateFixed,
+  X,
+  ChevronRight,
+  Radio,
+  Star, // Added Star for ratings
+  DollarSign // Added DollarSign for price
+} from 'lucide-react';
+
+// MOCK HOTEL DATA (Replaced Travelers with Hotels)
+const MOCK_HOTELS = [
+  {
+    _id: '1',
+    name: 'The Grand Palace',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=300',
+    currentLocation: { lat: 20.61, lng: 78.98 },
+    distanceKm: 2.5,
+    rating: 4.8,
+    pricePerNight: 120,
+    amenities: ['Pool', 'Spa', 'WiFi']
+  },
+  {
+    _id: '2',
+    name: 'City Center Inn',
+    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&q=80&w=300',
+    currentLocation: { lat: 20.58, lng: 78.95 },
+    distanceKm: 3.8,
+    rating: 4.2,
+    pricePerNight: 85,
+    amenities: ['Gym', 'Breakfast']
+  },
+  {
+    _id: '3',
+    name: 'Lakeside Resort',
+    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80&w=300',
+    currentLocation: { lat: 20.60, lng: 78.99 },
+    distanceKm: 4.2,
+    rating: 4.9,
+    pricePerNight: 200,
+    amenities: ['View', 'Restaurant']
+  },
+  {
+    _id: '4',
+    name: 'Budget Stay',
+    image: 'https://images.unsplash.com/photo-1562790351-d273a961e0e9?auto=format&fit=crop&q=80&w=300',
+    currentLocation: { lat: 20.62, lng: 78.94 },
+    distanceKm: 5.1,
+    rating: 3.5,
+    pricePerNight: 45,
+    amenities: ['WiFi', 'Parking']
+  },
+  {
+    _id: '5',
+    name: 'Boutique Hotel',
+    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=300',
+    currentLocation: { lat: 20.57, lng: 78.93 },
+    distanceKm: 6.5,
+    rating: 4.5,
+    pricePerNight: 150,
+    amenities: ['Bar', 'Design']
+  }
+];
 
 const containerStyle = {
-  width: "100%",
-  height: "calc(100vh - 80px)", // Full height minus navbar roughly
+  width: '100%',
+  height: '100%'
 };
 
-const libraries = ["places"];
+const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };
+const RADIUS_METERS = 20000;
 
-export default function NearHotels() {
-  const [location, setLocation] = useState(null);
-  const [places, setPlaces] = useState([]);
-  const [mapInstance, setMapInstance] = useState(null);
+const darkMapStyles = [
+  { elementType: "geometry", stylers: [{ color: "#212121" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+  {
+    featureType: "administrative",
+    elementType: "geometry",
+    stylers: [{ color: "#757575" }]
+  },
+  {
+    featureType: "administrative.country",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#9e9e9e" }]
+  },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#bdbdbd" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#757575" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#181818" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#616161" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#2c2c2c" }]
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#8a8a8a" }]
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry",
+    stylers: [{ color: "#373737" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#3c3c3c" }]
+  },
+  {
+    featureType: "road.highway.controlled_access",
+    elementType: "geometry",
+    stylers: [{ color: "#4e4e4e" }]
+  },
+  {
+    featureType: "road.local",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#616161" }]
+  },
+  {
+    featureType: "transit",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#757575" }]
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#000000" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#3d3d3d" }]
+  }
+];
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_API,
-    libraries,
+function NearbyHotels() { // Component renamed
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_API
   });
 
-  // Get user's current location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        },
-        () => console.warn("Location permission denied or unavailable")
-      );
-    }
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedHotel, setSelectedHotel] = useState(null); // Renamed state
+  const [showList, setShowList] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearbyHotels, setNearbyHotels] = useState([]); // Renamed state
+  const [loadingLocation, setLoadingLocation] = useState(true);
+  const [loadingHotels, setLoadingHotels] = useState(false); // Renamed state
+  const [error, setError] = useState('');
+
+  const fetchNearbyHotels = useCallback(async (lat, lng) => {
+    setLoadingHotels(true);
+    setError('');
+
+    // Simulate API Delay
+    setTimeout(() => {
+        // Generate mock points distinctively around the user's location
+        const mockDataAroundUser = MOCK_HOTELS.map(h => {
+            // Random offset within roughly 5-10km
+            const latOffset = (Math.random() - 0.5) * 0.1;
+            const lngOffset = (Math.random() - 0.5) * 0.1;
+            return {
+                ...h,
+                currentLocation: {
+                     lat: lat + latOffset,
+                     lng: lng + lngOffset
+                },
+                distanceKm: (Math.random() * 10).toFixed(1)
+            };
+        });
+
+        setNearbyHotels(mockDataAroundUser);
+        setLoadingHotels(false);
+    }, 1000);
+
   }, []);
 
-  // Fetch nearby places when map is loaded and location is available
   useEffect(() => {
-    if (isLoaded && mapInstance && location) {
-      const service = new window.google.maps.places.PlacesService(mapInstance);
-
-      const request = {
-        location,
-        radius: 3000, // 3 km
-        type: ["lodging"],
-      };
-
-      service.nearbySearch(request, (results, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-          setPlaces(results);
-        }
-      });
+    if (!navigator.geolocation) {
+      setError('Geolocation not supported by this browser.');
+      setLoadingLocation(false);
+      return;
     }
-  }, [isLoaded, mapInstance, location]);
 
-  const onLoad = (map) => {
-    setMapInstance(map);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setUserLocation(coords);
+        setLoadingLocation(false);
+        fetchNearbyHotels(coords.lat, coords.lng);
+      },
+      (geoError) => {
+        console.warn("Location denied, using default");
+        const defaultCoords = DEFAULT_CENTER;
+        setUserLocation(defaultCoords);
+        setLoadingLocation(false);
+        fetchNearbyHotels(defaultCoords.lat, defaultCoords.lng);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  }, [fetchNearbyHotels]);
+
+  const filteredHotels = useMemo(() => {
+    return nearbyHotels.filter((hotel) => {
+      const name = hotel.name?.toLowerCase() || '';
+      const amenityString = (hotel.amenities || []).join(' ').toLowerCase();
+      return (
+        name.includes(searchQuery.toLowerCase()) ||
+        amenityString.includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [nearbyHotels, searchQuery]);
+
+  const handleRetry = () => {
+    setLoadingLocation(true);
+    setError('');
+    setNearbyHotels([]);
+
+    if (userLocation) {
+        fetchNearbyHotels(userLocation.lat, userLocation.lng);
+        setLoadingLocation(false);
+    } else {
+         navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+                setUserLocation(coords);
+                setLoadingLocation(false);
+                fetchNearbyHotels(coords.lat, coords.lng);
+            },
+            () => {
+                 const defaultCoords = DEFAULT_CENTER;
+                 setUserLocation(defaultCoords);
+                 setLoadingLocation(false);
+                 fetchNearbyHotels(defaultCoords.lat, defaultCoords.lng);
+            }
+         );
+    }
   };
 
-  if (loadError) return <div>Error loading maps</div>;
-  if (!isLoaded) return <div>Loading Maps...</div>;
+  const getUserMarkerIcon = () => {
+    if (!window.google) return undefined;
+    return {
+      path: window.google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: '#3b82f6',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3
+    };
+  };
+
+  if (!isLoaded || loadingLocation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="bg-zinc-900/80 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-zinc-800 text-center space-y-6 max-w-md">
+          <div className="relative">
+            <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full" />
+            <Loader2 className="relative h-16 w-16 animate-spin text-blue-500 mx-auto" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-2xl font-bold text-white">Finding Hotels</p>
+            <p className="text-zinc-400">Fetching your location and nearby stays...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen pt-4 pb-20">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Nearby Hotels</h2>
-      {location ? (
-        <GoogleMap
-          mapContainerStyle={containerStyle}
-          center={location}
-          zoom={14}
-          onLoad={onLoad}
-        >
-          {/* User location */}
-          <Marker position={location} title="You are here" />
+    <div className="min-h-screen bg-black pt-30">
+      {/* Enhanced Header */}
+      <div className="bg-zinc-900/80 backdrop-blur-xl shadow-2xl border-b border-zinc-800 sticky top-0 z-20">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-2xl" />
+                <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-3 rounded-2xl shadow-lg shadow-blue-500/20">
+                  <Hotel className="h-7 w-7 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                  Nearby Hotels
+                </h1>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="flex items-center space-x-1.5">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
+                    <p className="text-sm font-medium text-zinc-300">
+                      {filteredHotels.length} available
+                    </p>
+                  </div>
+                  <span className="text-zinc-700">•</span>
+                  <p className="text-sm text-zinc-500">Within 20 km radius</p>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowList(!showList)}
+              className="sm:hidden bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95"
+            >
+              {showList ? <X className="h-5 w-5" /> : <Filter className="h-5 w-5" />}
+            </button>
+          </div>
 
-          {/* Nearby places */}
-          {places.map((place) => (
-            <Marker
-              key={place.place_id}
-              position={{
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-              }}
-              title={place.name}
-              icon={{
-                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // Different color for places
-              }}
-            />
-          ))}
-        </GoogleMap>
-      ) : (
-        <div>Getting your location...</div>
-      )}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-500 group-hover:text-blue-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search hotels or amenities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 bg-zinc-900 border-2 border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-zinc-100 placeholder-zinc-500 shadow-sm hover:shadow-md hover:border-zinc-700"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 flex items-start space-x-3 text-sm bg-red-950/50 border-l-4 border-red-500 rounded-xl p-4 shadow-sm backdrop-blur-sm">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-red-300">Error</p>
+                <p className="text-red-400 mt-0.5">{error}</p>
+              </div>
+              <button
+                onClick={handleRetry}
+                className="text-blue-400 font-semibold hover:text-blue-300 hover:underline transition-colors whitespace-nowrap"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-[1800px] mx-auto">
+        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-180px)] gap-6 p-4 sm:p-6">
+          <div
+            className={`${
+              showList ? 'block' : 'hidden'
+            } lg:block lg:w-96 bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden`}
+          >
+            <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border-b border-zinc-800 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-white text-lg">Available Hotels</h2>
+                <div className="flex items-center space-x-2">
+                  <div className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-semibold border border-blue-500/30">
+                    {filteredHotels.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-y-auto max-h-[400px] lg:max-h-[calc(100vh-280px)] p-4 space-y-3">
+              {loadingHotels && (
+                <div className="flex flex-col items-center justify-center py-12 text-blue-500">
+                  <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                  <p className="text-sm font-medium text-zinc-400">Loading hotels...</p>
+                </div>
+              )}
+
+              {!loadingHotels && filteredHotels.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="bg-zinc-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-10 w-10 text-zinc-600" />
+                  </div>
+                  <p className="text-zinc-300 font-medium">No hotels found</p>
+                  <p className="text-sm text-zinc-500 mt-2">Try adjusting your search criteria</p>
+                </div>
+              )}
+
+              {filteredHotels.map((hotel) => (
+                <div
+                  key={hotel._id}
+                  onClick={() => setSelectedHotel(hotel)}
+                  className={`group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 ${
+                    selectedHotel?._id === hotel._id
+                      ? 'bg-gradient-to-br from-blue-950/50 to-blue-900/30 shadow-lg shadow-blue-500/10 scale-[1.02] border-2 border-blue-500'
+                      : 'bg-zinc-800/50 hover:bg-zinc-800 shadow-md hover:shadow-lg border-2 border-transparent hover:border-zinc-700'
+                  }`}
+                >
+                  {selectedHotel?._id === hotel._id && (
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/20 to-transparent rounded-bl-full" />
+                  )}
+
+                  <div className="relative p-4">
+                    <div className="flex items-start space-x-4">
+                      {/* Hotel Image */}
+                      <div className="relative flex-shrink-0">
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-zinc-800 shadow-lg ring-1 ring-zinc-700">
+                           <img
+                             src={hotel.image}
+                             alt={hotel.name}
+                             className="w-full h-full object-cover"
+                           />
+                        </div>
+                      </div>
+
+                      {/* Hotel Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                             <p className="font-semibold text-white truncate text-base group-hover:text-blue-400 transition-colors">
+                            {hotel.name}
+                            </p>
+                            <div className="flex items-center bg-yellow-500/10 px-1.5 py-0.5 rounded border border-yellow-500/20">
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mr-1" />
+                                <span className="text-xs font-bold text-yellow-500">{hotel.rating}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 mt-1.5">
+                          <div className="flex items-center space-x-1 text-sm text-zinc-300 bg-zinc-900/80 px-2 py-1 rounded-lg border border-zinc-700">
+                            <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="font-medium">{hotel.distanceKm} km</span>
+                          </div>
+                           <div className="flex items-center space-x-1 text-sm text-green-300 bg-green-900/20 px-2 py-1 rounded-lg border border-green-700/30">
+                            <DollarSign className="h-3.5 w-3.5 text-green-500" />
+                            <span className="font-medium">${hotel.pricePerNight}</span>
+                          </div>
+                        </div>
+                        {hotel.amenities && hotel.amenities.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                                {hotel.amenities.slice(0, 2).map((am, idx) => (
+                                    <span key={idx} className="text-[10px] text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">{am}</span>
+                                ))}
+                            </div>
+                        )}
+                      </div>
+
+                      <ChevronRight className={`h-5 w-5 text-zinc-600 group-hover:text-blue-500 transition-all self-center ${
+                        selectedHotel?._id === hotel._id ? 'translate-x-1 text-blue-500' : ''
+                      }`} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-[500px] lg:min-h-0">
+            <div className="bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden h-full border border-zinc-800">
+              <div className="bg-gradient-to-r from-zinc-900 via-zinc-950 to-black text-white p-5 flex items-center justify-between relative overflow-hidden border-b border-zinc-800">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAyIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+                <div className="relative flex items-center space-x-3">
+                  <div className="bg-blue-600/20 backdrop-blur-sm p-2 rounded-lg border border-blue-500/30">
+                    <Navigation className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-lg">Map View</span>
+                    <p className="text-zinc-400 text-xs">Explore stays</p>
+                  </div>
+                </div>
+                <div className="relative flex items-center space-x-2 bg-blue-600/20 backdrop-blur-sm px-3 py-2 rounded-lg border border-blue-500/30">
+                  <Radio className="h-4 w-4 text-green-400 animate-pulse" />
+                  <span className="text-sm font-medium text-zinc-300">20 km</span>
+                </div>
+              </div>
+
+              <div className="h-[calc(100%-80px)] min-h-[450px] relative">
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={selectedHotel?.currentLocation || userLocation || DEFAULT_CENTER}
+                  zoom={userLocation ? 11 : 5}
+                  options={{
+                    zoomControl: true,
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: true,
+                    styles: darkMapStyles
+                  }}
+                >
+                  {userLocation && (
+                    <>
+                      <Marker
+                        position={userLocation}
+                        icon={getUserMarkerIcon()}
+                        title="Your location"
+                      />
+                      <Circle
+                        center={userLocation}
+                        radius={RADIUS_METERS}
+                        options={{
+                          fillColor: '#3b82f633',
+                          strokeColor: '#3b82f6',
+                          strokeOpacity: 0.8,
+                          strokeWeight: 2
+                        }}
+                      />
+                    </>
+                  )}
+
+                  {filteredHotels.map((hotel) => (
+                    <Marker
+                      key={hotel._id}
+                      position={{
+                        lat: hotel.currentLocation?.lat,
+                        lng: hotel.currentLocation?.lng
+                      }}
+                      title={`${hotel.name} — $${hotel.pricePerNight}`}
+                      onClick={() => setSelectedHotel(hotel)}
+                      label={{
+                        text: `$${hotel.pricePerNight}`,
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        className: 'bg-black px-1 rounded'
+                      }}
+                    />
+                  ))}
+                </GoogleMap>
+
+                {!userLocation && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950/95 to-black/95 backdrop-blur-lg text-center space-y-6 p-6">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
+                      <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-3xl shadow-2xl shadow-blue-500/20">
+                        <LocateFixed className="w-12 h-12 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-w-md">
+                      <p className="text-2xl font-bold text-white">Location Access Required</p>
+                      <p className="text-zinc-400">Share your location to find nearby hotels</p>
+                    </div>
+                    <button
+                      onClick={handleRetry}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 flex items-center space-x-2"
+                    >
+                      <LocateFixed className="w-5 h-5" />
+                      <span>Enable Location</span>
+                    </button>
+                  </div>
+                )}
+
+                {selectedHotel && userLocation && (
+                  <div className="absolute bottom-4 left-4 right-4 lg:left-4 lg:right-auto lg:max-w-sm bg-zinc-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-zinc-800 p-5 animate-slide-up">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
+                           <img
+                             src={selectedHotel.image}
+                             alt={selectedHotel.name}
+                             className="w-full h-full object-cover"
+                           />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white leading-tight">{selectedHotel.name}</p>
+                          <div className="flex items-center space-x-1 text-sm text-zinc-400 mt-1">
+                            <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="font-medium">{selectedHotel.distanceKm} km away</span>
+                          </div>
+                          <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-green-400 font-bold text-sm">${selectedHotel.pricePerNight}</span>
+                                <span className="text-zinc-500 text-xs">/ night</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedHotel(null)}
+                        className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 hover:bg-zinc-800 rounded-lg"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                    {selectedHotel.amenities && (
+                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-zinc-800">
+                        {selectedHotel.amenities.map((am, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[10px] font-medium rounded border border-zinc-700"
+                          >
+                            {am}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
+
+export default NearbyHotels;
