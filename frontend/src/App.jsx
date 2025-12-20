@@ -59,6 +59,7 @@ function App() {
     </Routes>
   );
 }
+// sign up and sign in pages
 
 export default App;
 
