@@ -1,11 +1,16 @@
 import { Navigate,Route, Routes } from "react-router-dom";
 
 import AuthGuard from "./components/AuthGuard";
+import EmergencyServices from "./components/EmergencyServices";
+import FoodNightlife from "./components/FoodNightlife";
 import Layout from "./components/layout";
 import NearByTravellers from "./components/NearByTravellers";
 import NearHotels from "./components/NearHotels";
+import ShoppingEntertainment from "./components/ShoppingEntertainment";
 import TouristPlaces from "./components/TouristPlaces";
+import TransportTravel from "./components/TransportTravel";
 import AboutUs from "./pages/aboutUs";
+import ActivityDetails from "./pages/Activity/ActivityDetails";
 import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
@@ -15,7 +20,6 @@ import ProfilePage from "./pages/User/profile";
 import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
 import HomePage from "./pages/userHome";
-import ActivityDetails from "./pages/Activity/ActivityDetails";
 
 function App() {
   return (
@@ -40,6 +44,10 @@ function App() {
        <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
        <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
        <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
+       <Route path="map/food-nightlife" element={<AuthGuard><FoodNightlife /></AuthGuard>} />
+       <Route path="map/shopping" element={<AuthGuard><ShoppingEntertainment /></AuthGuard>} />
+       <Route path="map/emergency" element={<AuthGuard><EmergencyServices /></AuthGuard>} />
+       <Route path="map/transport" element={<AuthGuard><TransportTravel /></AuthGuard>} />
 
        {/* Activity Routes */}
        <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />

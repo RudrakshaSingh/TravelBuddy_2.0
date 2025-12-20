@@ -102,6 +102,27 @@ export const placesService = {
     const response = await api.get(`/places/tourist?lat=${lat}&lng=${lng}&radius=${radius}`);
     return response.data;
   },
+
+  getNearbyRestaurants: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/restaurants?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
+
+  getNearbyShopping: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/shopping?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
+
+  getNearbyEmergency: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/emergency?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
+
+  getNearbyTransport: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/transport?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
 };
 
 export default api;
+

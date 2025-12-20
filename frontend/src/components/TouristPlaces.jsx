@@ -2,16 +2,18 @@ import { Circle,GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api
 import {
   AlertCircle,
   ChevronRight,
+  Clock,
   Filter,
   Landmark,
   Loader2,
   LocateFixed,
   MapPin,
   Navigation,
+  Phone,
   Radio,
   Search,
   Star,
-  Ticket,
+  Users,
   X} from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -109,6 +111,141 @@ const darkMapStyles = [
   }
 ];
 
+// Place Detail Modal Component
+function PlaceDetailModal({ place, onClose }) {
+  if (!place) return null;
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'OPERATIONAL':
+        return <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full border border-green-500/30">Open</span>;
+      case 'CLOSED_TEMPORARILY':
+        return <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-semibold rounded-full border border-yellow-500/30">Temporarily Closed</span>;
+      case 'CLOSED_PERMANENTLY':
+        return <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-semibold rounded-full border border-red-500/30">Permanently Closed</span>;
+      default:
+        return null;
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'Nature':
+        return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'Religious':
+        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      case 'Culture':
+        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+      case 'Historical':
+        return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+      default:
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-zinc-800 shadow-2xl animate-scale-in">
+        {/* Header with close button */}
+        <div className="relative">
+          {/* Photo */}
+          <div className="relative h-64 bg-zinc-800">
+            <img
+              src={place.image}
+              alt={place.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 p-2 rounded-full text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-16rem)]">
+          {/* Title and Status */}
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h2 className="text-2xl font-bold text-white leading-tight">{place.name}</h2>
+            {getStatusBadge(place.businessStatus)}
+          </div>
+
+          {/* Rating, Reviews, Category */}
+          <div className="flex items-center flex-wrap gap-3 mb-5">
+            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-lg border border-yellow-500/20">
+              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              <span className="font-bold text-yellow-500">{place.rating}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <Users className="w-4 h-4" />
+              <span className="text-sm">{place.totalRatings?.toLocaleString()} reviews</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              <span className="text-sm font-medium">{place.distanceKm} km away</span>
+            </div>
+            {place.category && (
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getCategoryColor(place.category)}`}>
+                {place.category}
+              </span>
+            )}
+          </div>
+
+          {/* Address */}
+          {place.vicinity && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Address</h3>
+              <p className="text-zinc-200">{place.vicinity}</p>
+            </div>
+          )}
+
+          {/* Phone */}
+          {place.phoneNumber && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Contact</h3>
+              <a
+                href={`tel:${place.phoneNumber}`}
+                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                <span>{place.phoneNumber}</span>
+              </a>
+            </div>
+          )}
+
+          {/* Opening Status */}
+          {place.isOpen !== undefined && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Status</h3>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-zinc-400" />
+                <span className={place.isOpen ? 'text-green-400' : 'text-red-400'}>
+                  {place.isOpen ? 'Open Now' : 'Currently Closed'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Get Directions Button */}
+          <div className="mt-6 pt-4 border-t border-zinc-800">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${place.currentLocation?.lat},${place.currentLocation?.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/20"
+            >
+              <Navigation className="w-5 h-5" />
+              Get Directions
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TouristPlaces() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_API
@@ -116,6 +253,7 @@ function TouristPlaces() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState(null);
+  const [detailPlace, setDetailPlace] = useState(null);
   const [showList, setShowList] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
@@ -160,7 +298,7 @@ function TouristPlaces() {
         fetchNearbyPlaces(coords.lat, coords.lng);
       },
       (geoError) => {
-        console.warn("Location denied, using default");
+        console.warn("Location denied, using default",geoError);
         const defaultCoords = DEFAULT_CENTER;
         setUserLocation(defaultCoords);
         setLoadingLocation(false);
@@ -223,6 +361,14 @@ function TouristPlaces() {
     };
   };
 
+  const handlePlaceClick = (place) => {
+    setDetailPlace(place);
+  };
+
+  const handleMapMarkerClick = (place) => {
+    setSelectedPlace(place);
+  };
+
   if (!isLoaded || loadingLocation) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -242,6 +388,11 @@ function TouristPlaces() {
 
   return (
     <div className="min-h-screen bg-black pt-30">
+      {/* Detail Modal */}
+      {detailPlace && (
+        <PlaceDetailModal place={detailPlace} onClose={() => setDetailPlace(null)} />
+      )}
+
       {/* Enhanced Header */}
       <div className="bg-zinc-900/80 backdrop-blur-xl shadow-2xl border-b border-zinc-800 sticky top-0 z-20">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -318,7 +469,7 @@ function TouristPlaces() {
           >
             <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border-b border-zinc-800 px-6 py-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-bold text-white text-lg">My Attractions</h2>
+                <h2 className="font-bold text-white text-lg">Nearby Attractions</h2>
                 <div className="flex items-center space-x-2">
                   <div className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-semibold border border-blue-500/30">
                     {filteredPlaces.length}
@@ -348,7 +499,7 @@ function TouristPlaces() {
               {filteredPlaces.map((place) => (
                 <div
                   key={place._id}
-                  onClick={() => setSelectedPlace(place)}
+                  onClick={() => handlePlaceClick(place)}
                   className={`group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 ${
                     selectedPlace?._id === place._id
                       ? 'bg-gradient-to-br from-blue-950/50 to-blue-900/30 shadow-lg shadow-blue-500/10 scale-[1.02] border-2 border-blue-500'
@@ -389,14 +540,18 @@ function TouristPlaces() {
                             <MapPin className="h-3.5 w-3.5 text-blue-500" />
                             <span className="font-medium">{place.distanceKm} km</span>
                           </div>
-                           <div className="flex items-center space-x-1 text-sm text-purple-300 bg-purple-900/20 px-2 py-1 rounded-lg border border-purple-700/30">
-                            <Ticket className="h-3.5 w-3.5 text-purple-500" />
-                            <span className="font-medium">{place.entryFee === 0 ? 'Free' : `$${place.entryFee}`}</span>
+                          {place.totalRatings > 0 && (
+                            <div className="flex items-center space-x-1 text-sm text-zinc-400">
+                              <Users className="h-3.5 w-3.5" />
+                              <span className="text-xs">{place.totalRatings}</span>
+                            </div>
+                          )}
+                        </div>
+                        {place.category && (
+                          <div className="mt-2 text-[10px] text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800 inline-block">
+                            {place.category}
                           </div>
-                        </div>
-                        <div className="mt-2 text-[10px] text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800 inline-block">
-                           {place.category}
-                        </div>
+                        )}
                       </div>
 
                       <ChevronRight className={`h-5 w-5 text-zinc-600 group-hover:text-blue-500 transition-all self-center ${
@@ -468,15 +623,8 @@ function TouristPlaces() {
                         lat: place.currentLocation?.lat,
                         lng: place.currentLocation?.lng
                       }}
-                      title={`${place.name} — ${place.entryFee === 0 ? 'Free' : '$'+place.entryFee}`}
-                      onClick={() => setSelectedPlace(place)}
-                      label={{
-                        text: place.entryFee === 0 ? 'Free' : `$${place.entryFee}`,
-                        color: '#ffffff',
-                        fontWeight: 'bold',
-                        fontSize: '12px',
-                        className: 'bg-black px-1 rounded'
-                      }}
+                      title={place.name}
+                      onClick={() => handleMapMarkerClick(place)}
                     />
                   ))}
                 </GoogleMap>
@@ -521,9 +669,11 @@ function TouristPlaces() {
                             <span className="font-medium">{selectedPlace.distanceKm} km away</span>
                           </div>
                           <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-green-400 font-bold text-sm">
-                                    {selectedPlace.entryFee === 0 ? 'Free Entry' : `$${selectedPlace.entryFee}`}
-                                </span>
+                            <div className="flex items-center">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mr-1" />
+                              <span className="text-yellow-500 text-sm font-bold">{selectedPlace.rating}</span>
+                            </div>
+                            <span className="text-zinc-500 text-xs">({selectedPlace.totalRatings} reviews)</span>
                           </div>
                         </div>
                       </div>
@@ -534,12 +684,12 @@ function TouristPlaces() {
                         <X className="h-5 w-5" />
                       </button>
                     </div>
-                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800">
-                        <span className="text-xs text-zinc-400 font-medium">{selectedPlace.openTime}</span>
-                        <span className="text-[10px] uppercase tracking-wider font-bold bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded">
-                            {selectedPlace.category}
-                        </span>
-                     </div>
+                    <button
+                      onClick={() => handlePlaceClick(selectedPlace)}
+                      className="w-full mt-2 py-2 bg-blue-600/20 text-blue-400 font-medium rounded-lg border border-blue-500/30 hover:bg-blue-600/30 transition-colors"
+                    >
+                      View Details
+                    </button>
                   </div>
                 )}
               </div>
@@ -561,6 +711,26 @@ function TouristPlaces() {
         }
         .animate-slide-up {
           animation: slide-up 0.3s ease-out;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
         }
       `}</style>
     </div>

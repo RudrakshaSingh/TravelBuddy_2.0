@@ -13,11 +13,15 @@ import {
   LogOut,
   MapPin,
   Menu,
+  Plane,
   Plus,
   Settings,
+  ShieldAlert,
+  ShoppingBag,
   Trash2,
   User,
   Users,
+  UtensilsCrossed,
   X} from 'lucide-react';
 import  { useEffect, useRef,useState } from 'react';
 import toast from 'react-hot-toast';
@@ -51,11 +55,6 @@ function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useClerk();
-
-  const currentUser = {
-    fullName: user?.fullName,
-    profilePicture: user?.imageUrl,
-  };
 
 
   const notificationCount = 3;
@@ -188,7 +187,11 @@ function NavBar() {
       children: [
         { name: 'Nearby Traveller', path: '/map', icon: Users },
         { name: 'Near Hotels', path: '/map/hotels', icon: Bed },
-        { name: 'Nearby Tourist Place', path: '/map/tourist-places', icon: Landmark }
+        { name: 'Tourist Places', path: '/map/tourist-places', icon: Landmark },
+        { name: 'Food & Nightlife', path: '/map/food-nightlife', icon: UtensilsCrossed },
+        { name: 'Shopping', path: '/map/shopping', icon: ShoppingBag },
+        { name: 'Emergency', path: '/map/emergency', icon: ShieldAlert },
+        { name: 'Transport', path: '/map/transport', icon: Plane },
       ]
     },
     { name: 'Activities', path: '/activities', icon: Calendar },
