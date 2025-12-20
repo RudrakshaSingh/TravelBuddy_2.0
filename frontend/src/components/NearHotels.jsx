@@ -1,17 +1,20 @@
 import { Circle,GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import {
   AlertCircle,
+  ChevronLeft,
   ChevronRight,
-  DollarSign,
+  Clock,
   Filter,
   Hotel,
   Loader2,
   LocateFixed,
   MapPin,
   Navigation,
+  Phone,
   Radio,
   Search,
   Star,
+  Users,
   X} from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -109,18 +112,151 @@ const darkMapStyles = [
   }
 ];
 
-function NearbyHotels() { // Component renamed
+// Hotel Detail Modal Component
+function HotelDetailModal({ hotel, onClose }) {
+  if (!hotel) return null;
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'OPERATIONAL':
+        return <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full border border-green-500/30">Open</span>;
+      case 'CLOSED_TEMPORARILY':
+        return <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-semibold rounded-full border border-yellow-500/30">Temporarily Closed</span>;
+      case 'CLOSED_PERMANENTLY':
+        return <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-semibold rounded-full border border-red-500/30">Permanently Closed</span>;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-zinc-800 shadow-2xl animate-scale-in">
+        {/* Header with close button */}
+        <div className="relative">
+          {/* Photo */}
+          <div className="relative h-64 bg-zinc-800">
+            <img
+              src={hotel.image}
+              alt={hotel.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 p-2 rounded-full text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-16rem)]">
+          {/* Title and Status */}
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h2 className="text-2xl font-bold text-white leading-tight">{hotel.name}</h2>
+            {getStatusBadge(hotel.businessStatus)}
+          </div>
+
+          {/* Rating and Reviews */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-lg border border-yellow-500/20">
+              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              <span className="font-bold text-yellow-500">{hotel.rating}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <Users className="w-4 h-4" />
+              <span className="text-sm">{hotel.totalRatings?.toLocaleString()} reviews</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              <span className="text-sm font-medium">{hotel.distanceKm} km away</span>
+            </div>
+          </div>
+
+          {/* Address */}
+          {hotel.vicinity && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Address</h3>
+              <p className="text-zinc-200">{hotel.vicinity}</p>
+            </div>
+          )}
+
+          {/* Phone */}
+          {hotel.phoneNumber && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Contact</h3>
+              <a
+                href={`tel:${hotel.phoneNumber}`}
+                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                <span>{hotel.phoneNumber}</span>
+              </a>
+            </div>
+          )}
+
+          {/* Opening Status */}
+          {hotel.isOpen !== undefined && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Status</h3>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-zinc-400" />
+                <span className={hotel.isOpen ? 'text-green-400' : 'text-red-400'}>
+                  {hotel.isOpen ? 'Open Now' : 'Currently Closed'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Amenities */}
+          {hotel.amenities && hotel.amenities.length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-2">Features</h3>
+              <div className="flex flex-wrap gap-2">
+                {hotel.amenities.map((am, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 bg-zinc-800 text-zinc-300 text-sm rounded-lg border border-zinc-700"
+                  >
+                    {am}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Get Directions Button */}
+          <div className="mt-6 pt-4 border-t border-zinc-800">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${hotel.currentLocation?.lat},${hotel.currentLocation?.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/20"
+            >
+              <Navigation className="w-5 h-5" />
+              Get Directions
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NearbyHotels() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_API
   });
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedHotel, setSelectedHotel] = useState(null); // Renamed state
+  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [detailHotel, setDetailHotel] = useState(null);
   const [showList, setShowList] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  const [nearbyHotels, setNearbyHotels] = useState([]); // Renamed state
+  const [nearbyHotels, setNearbyHotels] = useState([]);
   const [loadingLocation, setLoadingLocation] = useState(true);
-  const [loadingHotels, setLoadingHotels] = useState(false); // Renamed state
+  const [loadingHotels, setLoadingHotels] = useState(false);
   const [error, setError] = useState('');
 
   const fetchNearbyHotels = useCallback(async (lat, lng) => {
@@ -160,7 +296,7 @@ function NearbyHotels() { // Component renamed
         fetchNearbyHotels(coords.lat, coords.lng);
       },
       (geoError) => {
-        console.warn("Location denied, using default");
+        console.warn("Location denied, using default",geoError);
         const defaultCoords = DEFAULT_CENTER;
         setUserLocation(defaultCoords);
         setLoadingLocation(false);
@@ -223,6 +359,14 @@ function NearbyHotels() { // Component renamed
     };
   };
 
+  const handleHotelClick = (hotel) => {
+    setDetailHotel(hotel);
+  };
+
+  const handleMapMarkerClick = (hotel) => {
+    setSelectedHotel(hotel);
+  };
+
   if (!isLoaded || loadingLocation) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -242,6 +386,11 @@ function NearbyHotels() { // Component renamed
 
   return (
     <div className="min-h-screen bg-black pt-30">
+      {/* Detail Modal */}
+      {detailHotel && (
+        <HotelDetailModal hotel={detailHotel} onClose={() => setDetailHotel(null)} />
+      )}
+
       {/* Enhanced Header */}
       <div className="bg-zinc-900/80 backdrop-blur-xl shadow-2xl border-b border-zinc-800 sticky top-0 z-20">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -348,7 +497,7 @@ function NearbyHotels() { // Component renamed
               {filteredHotels.map((hotel) => (
                 <div
                   key={hotel._id}
-                  onClick={() => setSelectedHotel(hotel)}
+                  onClick={() => handleHotelClick(hotel)}
                   className={`group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 ${
                     selectedHotel?._id === hotel._id
                       ? 'bg-gradient-to-br from-blue-950/50 to-blue-900/30 shadow-lg shadow-blue-500/10 scale-[1.02] border-2 border-blue-500'
@@ -389,10 +538,12 @@ function NearbyHotels() { // Component renamed
                             <MapPin className="h-3.5 w-3.5 text-blue-500" />
                             <span className="font-medium">{hotel.distanceKm} km</span>
                           </div>
-                           <div className="flex items-center space-x-1 text-sm text-green-300 bg-green-900/20 px-2 py-1 rounded-lg border border-green-700/30">
-                            <DollarSign className="h-3.5 w-3.5 text-green-500" />
-                            <span className="font-medium">${hotel.pricePerNight}</span>
-                          </div>
+                          {hotel.totalRatings > 0 && (
+                            <div className="flex items-center space-x-1 text-sm text-zinc-400">
+                              <Users className="h-3.5 w-3.5" />
+                              <span className="text-xs">{hotel.totalRatings}</span>
+                            </div>
+                          )}
                         </div>
                         {hotel.amenities && hotel.amenities.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
@@ -472,15 +623,8 @@ function NearbyHotels() { // Component renamed
                         lat: hotel.currentLocation?.lat,
                         lng: hotel.currentLocation?.lng
                       }}
-                      title={`${hotel.name} — $${hotel.pricePerNight}`}
-                      onClick={() => setSelectedHotel(hotel)}
-                      label={{
-                        text: `$${hotel.pricePerNight}`,
-                        color: '#ffffff',
-                        fontWeight: 'bold',
-                        fontSize: '12px',
-                        className: 'bg-black px-1 rounded'
-                      }}
+                      title={hotel.name}
+                      onClick={() => handleMapMarkerClick(hotel)}
                     />
                   ))}
                 </GoogleMap>
@@ -525,8 +669,11 @@ function NearbyHotels() { // Component renamed
                             <span className="font-medium">{selectedHotel.distanceKm} km away</span>
                           </div>
                           <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-green-400 font-bold text-sm">${selectedHotel.pricePerNight}</span>
-                                <span className="text-zinc-500 text-xs">/ night</span>
+                            <div className="flex items-center">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mr-1" />
+                              <span className="text-yellow-500 text-sm font-bold">{selectedHotel.rating}</span>
+                            </div>
+                            <span className="text-zinc-500 text-xs">({selectedHotel.totalRatings} reviews)</span>
                           </div>
                         </div>
                       </div>
@@ -537,18 +684,12 @@ function NearbyHotels() { // Component renamed
                         <X className="h-5 w-5" />
                       </button>
                     </div>
-                    {selectedHotel.amenities && (
-                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-zinc-800">
-                        {selectedHotel.amenities.map((am, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[10px] font-medium rounded border border-zinc-700"
-                          >
-                            {am}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <button
+                      onClick={() => handleHotelClick(selectedHotel)}
+                      className="w-full mt-2 py-2 bg-blue-600/20 text-blue-400 font-medium rounded-lg border border-blue-500/30 hover:bg-blue-600/30 transition-colors"
+                    >
+                      View Details
+                    </button>
                   </div>
                 )}
               </div>
@@ -570,6 +711,26 @@ function NearbyHotels() { // Component renamed
         }
         .animate-slide-up {
           animation: slide-up 0.3s ease-out;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
         }
       `}</style>
     </div>

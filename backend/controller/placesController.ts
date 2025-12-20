@@ -29,6 +29,8 @@ interface PlaceResult {
     opening_hours?: {
         open_now?: boolean;
     };
+    international_phone_number?: string;
+    business_status?: string;
 }
 
 // Helper to get photo URL from photo reference
@@ -62,12 +64,15 @@ const transformPlaceResult = (
     userLat: number,
     userLng: number
 ) => {
+    // Get the photo URL (Nearby Search API only returns 1 photo)
+    const image = place.photos?.[0]
+        ? getPhotoUrl(place.photos[0].photo_reference, 800)
+        : "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=300";
+
     return {
         _id: place.place_id,
         name: place.name,
-        image: place.photos?.[0]
-            ? getPhotoUrl(place.photos[0].photo_reference)
-            : "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=300",
+        image,
         currentLocation: {
             lat: place.geometry.location.lat,
             lng: place.geometry.location.lng,
@@ -79,11 +84,12 @@ const transformPlaceResult = (
             place.geometry.location.lng
         ),
         rating: place.rating || 0,
-        priceLevel: place.price_level || 0,
         vicinity: place.vicinity || "",
         types: place.types || [],
         isOpen: place.opening_hours?.open_now,
         totalRatings: place.user_ratings_total || 0,
+        phoneNumber: place.international_phone_number || "",
+        businessStatus: place.business_status || "UNKNOWN",
     };
 };
 
@@ -104,6 +110,7 @@ export const getNearbyHotels = asyncHandler(
 
         const response = await fetch(url);
         const data = await response.json();
+        
 
         if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
             throw new ApiError(
@@ -116,19 +123,18 @@ export const getNearbyHotels = asyncHandler(
             transformPlaceResult(place, parseFloat(lat as string), parseFloat(lng as string))
         );
 
-        // Add estimated price per night based on price_level (0-4 scale from Google)
-        const hotelsWithPrice = hotels.map((hotel: ReturnType<typeof transformPlaceResult>) => ({
+        // Add amenities from types
+        const hotelsWithAmenities = hotels.map((hotel: ReturnType<typeof transformPlaceResult>) => ({
             ...hotel,
-            pricePerNight: hotel.priceLevel ? hotel.priceLevel * 50 + 50 : 80,
             amenities: hotel.types
                 ?.filter((t: string) => !["lodging", "point_of_interest", "establishment"].includes(t))
                 .slice(0, 3)
                 .map((t: string) => t.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())) || [],
         }));
-
+        
         return res
             .status(200)
-            .json(new ApiResponse(200, hotelsWithPrice, "Nearby hotels fetched successfully"));
+            .json(new ApiResponse(200, hotelsWithAmenities, "Nearby hotels fetched successfully"));
     }
 );
 
@@ -150,7 +156,9 @@ export const getNearbyTouristPlaces = asyncHandler(
         
         const response = await fetch(url);
         const data = await response.json();
-              console.log( "ss",data);
+
+        console.log("dd",data);
+        
 
         if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
             throw new ApiError(
@@ -180,7 +188,6 @@ export const getNearbyTouristPlaces = asyncHandler(
             return {
                 ...place,
                 category,
-                entryFee: place.priceLevel ? place.priceLevel * 5 : 0,
                 openTime: place.isOpen !== undefined
                     ? (place.isOpen ? "Open Now" : "Currently Closed")
                     : "Hours Vary",
