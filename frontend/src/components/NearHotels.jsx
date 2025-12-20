@@ -1,74 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
+import { Circle,GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import {
-  MapPin,
-  Hotel, // Changed to Hotel icon
-  Search,
-  Filter,
-  Navigation,
-  Loader2,
   AlertCircle,
-  LocateFixed,
-  X,
   ChevronRight,
+  DollarSign,
+  Filter,
+  Hotel,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Navigation,
   Radio,
-  Star, // Added Star for ratings
-  DollarSign // Added DollarSign for price
-} from 'lucide-react';
+  Search,
+  Star,
+  X} from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-// MOCK HOTEL DATA (Replaced Travelers with Hotels)
-const MOCK_HOTELS = [
-  {
-    _id: '1',
-    name: 'The Grand Palace',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=300',
-    currentLocation: { lat: 20.61, lng: 78.98 },
-    distanceKm: 2.5,
-    rating: 4.8,
-    pricePerNight: 120,
-    amenities: ['Pool', 'Spa', 'WiFi']
-  },
-  {
-    _id: '2',
-    name: 'City Center Inn',
-    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&q=80&w=300',
-    currentLocation: { lat: 20.58, lng: 78.95 },
-    distanceKm: 3.8,
-    rating: 4.2,
-    pricePerNight: 85,
-    amenities: ['Gym', 'Breakfast']
-  },
-  {
-    _id: '3',
-    name: 'Lakeside Resort',
-    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80&w=300',
-    currentLocation: { lat: 20.60, lng: 78.99 },
-    distanceKm: 4.2,
-    rating: 4.9,
-    pricePerNight: 200,
-    amenities: ['View', 'Restaurant']
-  },
-  {
-    _id: '4',
-    name: 'Budget Stay',
-    image: 'https://images.unsplash.com/photo-1562790351-d273a961e0e9?auto=format&fit=crop&q=80&w=300',
-    currentLocation: { lat: 20.62, lng: 78.94 },
-    distanceKm: 5.1,
-    rating: 3.5,
-    pricePerNight: 45,
-    amenities: ['WiFi', 'Parking']
-  },
-  {
-    _id: '5',
-    name: 'Boutique Hotel',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=300',
-    currentLocation: { lat: 20.57, lng: 78.93 },
-    distanceKm: 6.5,
-    rating: 4.5,
-    pricePerNight: 150,
-    amenities: ['Bar', 'Design']
-  }
-];
+import { placesService } from '../redux/services/api';
+
+// Hotels will be fetched from Google Places API via backend
 
 const containerStyle = {
   width: '100%',
@@ -178,27 +127,19 @@ function NearbyHotels() { // Component renamed
     setLoadingHotels(true);
     setError('');
 
-    // Simulate API Delay
-    setTimeout(() => {
-        // Generate mock points distinctively around the user's location
-        const mockDataAroundUser = MOCK_HOTELS.map(h => {
-            // Random offset within roughly 5-10km
-            const latOffset = (Math.random() - 0.5) * 0.1;
-            const lngOffset = (Math.random() - 0.5) * 0.1;
-            return {
-                ...h,
-                currentLocation: {
-                     lat: lat + latOffset,
-                     lng: lng + lngOffset
-                },
-                distanceKm: (Math.random() * 10).toFixed(1)
-            };
-        });
-
-        setNearbyHotels(mockDataAroundUser);
-        setLoadingHotels(false);
-    }, 1000);
-
+    try {
+      const response = await placesService.getNearbyHotels(lat, lng, RADIUS_METERS);
+      if (response.statusCode === 200) {
+        setNearbyHotels(response.data || []);
+      } else {
+        setError(response.message || 'Failed to fetch hotels');
+      }
+    } catch (err) {
+      console.error('Error fetching hotels:', err);
+      setError(err.response?.data?.message || 'Failed to fetch nearby hotels. Please try again.');
+    } finally {
+      setLoadingHotels(false);
+    }
   }, []);
 
   useEffect(() => {

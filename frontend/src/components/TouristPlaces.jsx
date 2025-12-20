@@ -1,79 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
+import { Circle,GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import {
-  MapPin,
-  Landmark, // Icon for Tourist Places
-  Search,
-  Filter,
-  Navigation,
-  Loader2,
   AlertCircle,
-  LocateFixed,
-  X,
   ChevronRight,
+  Filter,
+  Landmark,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Navigation,
   Radio,
+  Search,
   Star,
-  Ticket // Icon for Entry Fee
-} from 'lucide-react';
+  Ticket,
+  X} from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-// MOCK TOURIST PLACES DATA
-const MOCK_PLACES = [
-  {
-    _id: '1',
-    name: 'Ancient Fort Ruins',
-    image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=300', // Fort image
-    currentLocation: { lat: 20.61, lng: 78.98 },
-    distanceKm: 2.5,
-    rating: 4.7,
-    entryFee: 5, // $/₹
-    category: 'Historical',
-    openTime: '9:00 AM - 5:00 PM'
-  },
-  {
-    _id: '2',
-    name: 'Sunset Point',
-    image: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&q=80&w=300', // Scenery
-    currentLocation: { lat: 20.58, lng: 78.95 },
-    distanceKm: 3.8,
-    rating: 4.9,
-    entryFee: 0, // Free
-    category: 'Nature',
-    openTime: '24 Hours'
-  },
-  {
-    _id: '3',
-    name: 'City Museum',
-    image: 'https://images.unsplash.com/photo-1554907984-15263bf063bd?auto=format&fit=crop&q=80&w=300', // Museum
-    currentLocation: { lat: 20.60, lng: 78.99 },
-    distanceKm: 4.2,
-    rating: 4.5,
-    entryFee: 10,
-    category: 'Culture',
-    openTime: '10:00 AM - 6:00 PM'
-  },
-  {
-    _id: '4',
-    name: 'Botanical Gardens',
-    image: 'https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&q=80&w=300', // Garden
-    currentLocation: { lat: 20.62, lng: 78.94 },
-    distanceKm: 5.1,
-    rating: 4.6,
-    entryFee: 2,
-    category: 'Nature',
-    openTime: '8:00 AM - 7:00 PM'
-  },
-  {
-    _id: '5',
-    name: 'Grand Temple',
-    image: 'https://images.unsplash.com/photo-1477586957327-818a552253d7?auto=format&fit=crop&q=80&w=300', // Temple/Architecture
-    currentLocation: { lat: 20.57, lng: 78.93 },
-    distanceKm: 6.5,
-    rating: 4.8,
-    entryFee: 0,
-    category: 'Religious',
-    openTime: '6:00 AM - 9:00 PM'
-  }
-];
+import { placesService } from '../redux/services/api';
+
+// Tourist places will be fetched from Google Places API via backend
 
 const containerStyle = {
   width: '100%',
@@ -183,27 +127,19 @@ function TouristPlaces() {
     setLoadingPlaces(true);
     setError('');
 
-    // Simulate API Delay
-    setTimeout(() => {
-        // Generate mock points distinctively around the user's location
-        const mockDataAroundUser = MOCK_PLACES.map(p => {
-            // Random offset within roughly 5-10km
-            const latOffset = (Math.random() - 0.5) * 0.1;
-            const lngOffset = (Math.random() - 0.5) * 0.1;
-            return {
-                ...p,
-                currentLocation: {
-                     lat: lat + latOffset,
-                     lng: lng + lngOffset
-                },
-                distanceKm: (Math.random() * 10).toFixed(1)
-            };
-        });
-
-        setNearbyPlaces(mockDataAroundUser);
-        setLoadingPlaces(false);
-    }, 1000);
-
+    try {
+      const response = await placesService.getNearbyTouristPlaces(lat, lng, RADIUS_METERS);
+      if (response.statusCode === 200) {
+        setNearbyPlaces(response.data || []);
+      } else {
+        setError(response.message || 'Failed to fetch places');
+      }
+    } catch (err) {
+      console.error('Error fetching tourist places:', err);
+      setError(err.response?.data?.message || 'Failed to fetch nearby places. Please try again.');
+    } finally {
+      setLoadingPlaces(false);
+    }
   }, []);
 
   useEffect(() => {

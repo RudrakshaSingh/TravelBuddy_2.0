@@ -47,7 +47,6 @@ function NavBar() {
     }
   }, [isSignedIn, dispatch, getToken]);
 
-  console.log('Redux userProfile:', userProfile);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,7 +108,6 @@ function NavBar() {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
-            console.log('Current Location:', { latitude, longitude });
 
              // 1. Get readable address for UI
             try {
@@ -117,8 +115,7 @@ function NavBar() {
                console.log('address', address);
 
                setCurrentLocationName(address);
-            } catch (error) {
-               console.error("Error reverse geocoding:", error);
+            } catch {
                setCurrentLocationName("Unknown Location");
             }
 

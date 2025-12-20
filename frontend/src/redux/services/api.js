@@ -91,4 +91,17 @@ export const userService = {
   },
 };
 
+// Places API service functions (no auth required for public data)
+export const placesService = {
+  getNearbyHotels: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/hotels?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
+
+  getNearbyTouristPlaces: async (lat, lng, radius = 20000) => {
+    const response = await api.get(`/places/tourist?lat=${lat}&lng=${lng}&radius=${radius}`);
+    return response.data;
+  },
+};
+
 export default api;
