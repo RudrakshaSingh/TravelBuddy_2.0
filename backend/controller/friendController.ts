@@ -5,6 +5,18 @@ import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
 
+// Helper to format users - uses stored data, no Clerk API calls needed!
+function formatUserData(users: any[]) {
+  return users.map((user: any) => ({
+    _id: user._id,
+    name: user.name || 'Anonymous',
+    profileImage: user.profileImage || '',
+    nationality: user.nationality,
+    travelStyle: user.travelStyle,
+    gender: user.gender,
+  }));
+}
+
 // Send Friend Request
 export const sendFriendRequest = asyncHandler(
   async (req: Request | any, res: Response, next: NextFunction) => {
@@ -155,15 +167,18 @@ export const removeFriend = asyncHandler(
 export const getFriends = asyncHandler(
   async (req: Request | any, res: Response, next: NextFunction) => {
     const userId = req.user._id;
-    const user = await User.findById(userId).populate("friends", "firstName lastName imageUrl nationality travelStyle");
+    const user = await User.findById(userId).populate("friends", "name profileImage nationality travelStyle gender");
 
     if (!user) {
       throw new ApiError(404, "User not found");
     }
 
+    // Format user data - no Clerk API calls needed!
+    const formattedFriends = formatUserData(user.friends as any[]);
+
     return res
       .status(200)
-      .json(new ApiResponse(200, user.friends, "Friends fetched successfully"));
+      .json(new ApiResponse(200, formattedFriends, "Friends fetched successfully"));
   }
 );
 
@@ -172,18 +187,23 @@ export const getFriendRequests = asyncHandler(
     async (req: Request | any, res: Response, next: NextFunction) => {
       const userId = req.user._id;
       const user = await User.findById(userId)
-        .populate("friendRequests", "firstName lastName imageUrl nationality travelStyle gender")
-        .populate("sentFriendRequests", "firstName lastName imageUrl nationality travelStyle gender");
+        .populate("friendRequests", "name profileImage nationality travelStyle gender")
+        .populate("sentFriendRequests", "name profileImage nationality travelStyle gender");
   
       if (!user) {
         throw new ApiError(404, "User not found");
       }
+
+      // Format both lists - no Clerk API calls needed!
+      const formattedReceived = formatUserData(user.friendRequests as any[]);
+      const formattedSent = formatUserData(user.sentFriendRequests as any[]);
   
       return res
         .status(200)
         .json(new ApiResponse(200, {
-            received: user.friendRequests,
-            sent: user.sentFriendRequests
+            received: formattedReceived,
+            sent: formattedSent
         }, "Friend requests fetched successfully"));
     }
 );
+

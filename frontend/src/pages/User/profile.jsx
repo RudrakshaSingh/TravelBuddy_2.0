@@ -4,6 +4,8 @@ import {
   Calendar,
   Camera,
   Edit2,
+  Eye,
+  EyeOff,
   Facebook,
   Globe,
   Heart,
@@ -63,9 +65,9 @@ export default function ProfilePage() {
   const [clerkUpdates, setClerkUpdates] = useState({
     firstName: '',
     lastName: '',
-    file: null,
   });
   const [coverImageFile, setCoverImageFile] = useState(null);
+  const [profileImageFile, setProfileImageFile] = useState(null);
 
   // Search/Dropdown States
   const [nationalitySearch, setNationalitySearch] = useState('');
@@ -161,7 +163,6 @@ export default function ProfilePage() {
       setClerkUpdates({
         firstName: clerkUser.firstName || '',
         lastName: clerkUser.lastName || '',
-        file: null,
       });
       // Initialize validation/search fields
       setNationalitySearch(editData.nationality || '');
@@ -189,7 +190,8 @@ export default function ProfilePage() {
         toast.error('Image size should be less than 5MB');
         return;
       }
-      setClerkUpdates((prev) => ({ ...prev, file }));
+      // Store file for backend upload (not Clerk)
+      setProfileImageFile(file);
     }
   };
 
@@ -230,35 +232,31 @@ export default function ProfilePage() {
 
     setIsSaving(true);
     try {
-      // 1. Update Clerk Data (if changed)
-      const promises = [];
+      // 1. Update Clerk name (if changed) - we keep name synced in Clerk for auth display
       if (
         clerkUpdates.firstName !== clerkUser.firstName ||
         clerkUpdates.lastName !== clerkUser.lastName
       ) {
-        promises.push(
-          clerkUser.update({
-            firstName: clerkUpdates.firstName,
-            lastName: clerkUpdates.lastName,
-          })
-        );
-      }
-      if (clerkUpdates.file) {
-        promises.push(clerkUser.setProfileImage({ file: clerkUpdates.file }));
+        await clerkUser.update({
+          firstName: clerkUpdates.firstName,
+          lastName: clerkUpdates.lastName,
+        });
       }
 
-      if (promises.length > 0) {
-        await Promise.all(promises);
-      }
-
-      // 2. Update Backend Data (include cover image file if selected)
-      const profilePayload = coverImageFile
-        ? { ...editData, coverImageFile }
-        : editData;
+      // 2. Update Backend Data (include cover image and profile image files if selected)
+      // Also update name in backend to keep in sync
+      const newName = `${clerkUpdates.firstName} ${clerkUpdates.lastName}`.trim() || 'Anonymous';
+      const profilePayload = {
+        ...editData,
+        name: newName,
+        ...(coverImageFile && { coverImageFile }),
+        ...(profileImageFile && { profileImageFile }),
+      };
       const response = await updateProfile(profilePayload);
       setProfile(response.data);
       setIsEditing(false);
       setCoverImageFile(null);
+      setProfileImageFile(null);
       toast.success('Profile updated successfully!');
     } catch (err) {
       console.error(err);
@@ -272,10 +270,10 @@ export default function ProfilePage() {
     setEditData(profile);
     setIsEditing(false);
     setCoverImageFile(null);
+    setProfileImageFile(null);
     setClerkUpdates({
         firstName: clerkUser.firstName || '',
         lastName: clerkUser.lastName || '',
-        file: null
     });
   };
 
@@ -365,22 +363,22 @@ export default function ProfilePage() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
                     {/* Image Preview */}
-                    {isEditing && clerkUpdates.file ? (
+                    {isEditing && profileImageFile ? (
                         <img
-                         src={URL.createObjectURL(clerkUpdates.file)}
+                         src={URL.createObjectURL(profileImageFile)}
                          alt="Preview"
                          className="w-full h-full object-cover"
                         />
                     ) : (
-                         clerkUser?.imageUrl ? (
+                         profile?.profileImage ? (
                         <img
-                          src={clerkUser.imageUrl}
-                          alt={clerkUser?.fullName}
+                          src={profile.profileImage}
+                          alt={profile?.name || 'Profile'}
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-4xl text-orange-500 font-bold bg-orange-100">
-                          {clerkUser?.firstName?.[0]?.toUpperCase() || 'U'}
+                          {profile?.name?.[0]?.toUpperCase() || clerkUser?.firstName?.[0]?.toUpperCase() || 'U'}
                         </div>
                       )
                     )}
@@ -516,6 +514,43 @@ export default function ProfilePage() {
                 ) : (
                     <p className="text-gray-900 font-medium">{formatDate(profile?.dob)}</p>
                 )}
+              </div>
+
+              {/* Profile Visibility Toggle */}
+              <div className="pt-4 border-t border-gray-200">
+                <label className="text-sm text-gray-500 mb-2 block">Profile Visibility</label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {(isEditing ? editData.profileVisibility : profile?.profileVisibility) === 'Public' ? (
+                      <Eye className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <EyeOff className="w-5 h-5 text-orange-500" />
+                    )}
+                    <span className="text-gray-900 font-medium">
+                      {(isEditing ? editData.profileVisibility : profile?.profileVisibility) || 'Public'}
+                    </span>
+                  </div>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => handleEditChange('profileVisibility', editData.profileVisibility === 'Public' ? 'Private' : 'Public')}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                        editData.profileVisibility === 'Public' ? 'bg-green-500' : 'bg-orange-500'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          editData.profileVisibility === 'Public' ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  {(isEditing ? editData.profileVisibility : profile?.profileVisibility) === 'Public' 
+                    ? 'Anyone can see your full profile' 
+                    : 'Only friends can see your full profile'}
+                </p>
               </div>
             </div>
           </div>
