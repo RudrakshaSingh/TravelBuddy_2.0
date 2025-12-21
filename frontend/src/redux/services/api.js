@@ -90,8 +90,16 @@ export const userService = {
     return response.data;
   },
 
-  getNearbyTravelers: async (authApi, lat, lng, radius = 20000) => {
-    const response = await authApi.get(`/users/nearby?lat=${lat}&lng=${lng}&radius=${radius}`);
+  getNearbyTravelers: async (authApi, { lat, lng, radius = 20000, search = '', page = 1, limit = 50 } = {}) => {
+    const params = new URLSearchParams();
+    if (lat !== undefined && lat !== null) params.append('lat', lat);
+    if (lng !== undefined && lng !== null) params.append('lng', lng);
+    if (radius) params.append('radius', radius);
+    if (search) params.append('search', search);
+    params.append('page', page);
+    params.append('limit', limit);
+    
+    const response = await authApi.get(`/users/nearby?${params.toString()}`);
     return response.data;
   },
 };
