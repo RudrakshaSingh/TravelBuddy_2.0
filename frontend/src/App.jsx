@@ -4,6 +4,7 @@ import AuthGuard from "./components/AuthGuard";
 import EmergencyServices from "./components/EmergencyServices";
 import FoodNightlife from "./components/FoodNightlife";
 import Layout from "./components/layout";
+import NearbyActivities from "./components/NearbyActivities";
 import NearByTravellers from "./components/NearByTravellers";
 import NearHotels from "./components/NearHotels";
 import ShoppingEntertainment from "./components/ShoppingEntertainment";
@@ -15,6 +16,11 @@ import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
 import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
+import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
+import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
+import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
+import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
+import TermsOfService from "./pages/miscellaneous/TermsOfService";
 import PaymentStatus from "./pages/paymentStatus";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import Connections from "./pages/User/Connections";
@@ -23,14 +29,9 @@ import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
 import TravelerProfile from "./pages/User/TravelerProfile";
 import HomePage from "./pages/userHome";
-import UploadPost from "./pages/UserPosts/UploadPost";
 import ManagePost from "./pages/UserPosts/ManagePost";
 import ReadArticle from "./pages/UserPosts/RealArticle";
-import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
-import TermsOfService from "./pages/miscellaneous/TermsOfService";
-import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
-import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
-import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
+import UploadPost from "./pages/UserPosts/UploadPost";
 import UserPosts from "./pages/UserPosts/UserPosts";
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
 
         {/* Map Routes */}
         <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
+        <Route path="map/nearby-activities" element={<AuthGuard><NearbyActivities /></AuthGuard>} />
         <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
         <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
         <Route path="map/food-nightlife" element={<AuthGuard><FoodNightlife /></AuthGuard>} />
