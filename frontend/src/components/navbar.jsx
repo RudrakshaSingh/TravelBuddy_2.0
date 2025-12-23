@@ -180,10 +180,6 @@ function NavBar() {
     navigate('/sign-in');
   };
 
-  const handleDeleteAccount = () => {
-    console.log('Delete account clicked');
-    setIsProfileMenuOpen(false);
-  };
 
   const navLinks = [
     {name:'Read Article',path:'/read-article',icon:BookOpen},
@@ -194,6 +190,7 @@ function NavBar() {
       icon: MapPin,
       children: [
         { name: 'Nearby Traveller', path: '/map', icon: Users },
+        { name: 'Nearby Activities', path: '/map/nearby-activities', icon: Activity },
         { name: 'Near Hotels', path: '/map/hotels', icon: Bed },
         { name: 'Tourist Places', path: '/map/tourist-places', icon: Landmark },
         { name: 'Food & Nightlife', path: '/map/food-nightlife', icon: UtensilsCrossed },

@@ -176,6 +176,107 @@ export const getActivities = asyncHandler(
   }
 );
 
+export const getNearbyActivities = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { lat, lng, radius = 50000, search = '', page = 1, limit = 50 } = req.query;
+    
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 50));
+    const skip = (pageNum - 1) * limitNum;
+    const now = new Date();
+
+    // Build the query
+    const query: any = {
+      date: { $gte: now }
+    };
+
+    // Geospatial filter if lat/lng provided
+    if (lat && lng) {
+      const latitude = parseFloat(lat as string);
+      const longitude = parseFloat(lng as string);
+      const radiusMeters = parseFloat(radius as string) || 50000;
+
+      query.location = {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude]
+          },
+          $maxDistance: radiusMeters
+        }
+      };
+    }
+
+    // Text search filter
+    if (search) {
+      const searchRegex = { $regex: search as string, $options: 'i' };
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex }
+      ];
+    }
+
+    // Get total count for pagination
+    const totalCount = await Activity.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    // Fetch activities with pagination
+    let activitiesQuery = Activity.find(query)
+      .skip(skip)
+      .limit(limitNum)
+      .populate("createdBy", "name email mobile profileImage")
+      .lean();
+
+    // If no geo query, sort by date
+    if (!lat || !lng) {
+      activitiesQuery = activitiesQuery.sort({ date: 1, startTime: 1 });
+    }
+
+    const activities = await activitiesQuery;
+
+    // Calculate distance for each activity if user location provided
+    const activitiesWithDistance = activities.map((activity: any) => {
+      if (lat && lng && activity.location?.coordinates) {
+        const [actLng, actLat] = activity.location.coordinates;
+        const userLat = parseFloat(lat as string);
+        const userLng = parseFloat(lng as string);
+        
+        // Haversine formula
+        const R = 6371; // Earth's radius in km
+        const dLat = (actLat - userLat) * Math.PI / 180;
+        const dLng = (actLng - userLng) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(userLat * Math.PI / 180) * Math.cos(actLat * Math.PI / 180) * 
+          Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distanceKm = (R * c).toFixed(1);
+        
+        return { ...activity, distanceKm };
+      }
+      return { ...activity, distanceKm: null };
+    });
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          activities: activitiesWithDistance,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            totalCount,
+            totalPages,
+            hasMore: pageNum < totalPages
+          }
+        },
+        "Nearby activities fetched successfully"
+      )
+    );
+  }
+);
+
 export const getActivityById = asyncHandler(
   async (req: Request, res: Response) => {
 
