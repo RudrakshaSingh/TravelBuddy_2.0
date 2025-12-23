@@ -3,6 +3,7 @@ import {
   Activity,
   Bed,
   Bell,
+  BookOpen,
   Calendar,
   CalendarDays,
   Camera,
@@ -185,7 +186,7 @@ function NavBar() {
   };
 
   const navLinks = [
-    { name: 'Discover', path: '/', icon: Compass },
+    {name:'Read Article',path:'/read-article',icon:BookOpen},
     { name: 'Ai Trip Planner', path: '/ai-trip-planner', icon: Sparkles },
     {
       name: 'Map',
@@ -203,22 +204,25 @@ function NavBar() {
     },
     { name: 'Traveler Posts', path: '/user-posts', icon: Camera },
     { name: 'Activities', path: '/activities', icon: Calendar },
-    { name: 'About Us', path: '/about-us', icon: Info },
+
   ];
 
   const profileMenuItems = [
     { name: 'Profile', path: '/profile', icon: User },
     { name: 'Joined Activities', path: '/joined-activities', icon: Activity },
     { name: 'My Activities', path: '/created-activities', icon: Calendar },
-    { name: 'Manage Post', path: '/manage-posts', icon: Image },
+
     { name: 'Upload Post', path: '/upload-post', icon: Upload },
+    { name: 'Upload Article', path: '/upload-article', icon: Upload },
+      { name: 'Manage Post', path: '/manage-posts', icon: Image },
+    { name: 'Manage Article', path: '/manage-article', icon: Image },
     { name: 'Connections', path: '/connections', icon: Link },
     { name: 'Notifications', path: '/notifications', icon: Bell, badge: notificationCount },
   ];
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 pointer-events-none transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[-100%] opacity-0'}`}>
-    <nav className="w-full pointer-events-auto bg-white/80 backdrop-blur-xl shadow-lg border-b border-gray-100/50 transition-all duration-300">
+    <div className={`fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none transition-all duration-500 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-[150%] opacity-0'}`}>
+    <nav className="w-full pointer-events-auto bg-white/80 backdrop-blur-xl shadow-lg border border-gray-100/50 rounded-2xl transition-all duration-300">
       <div className="px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex items-center h-16 sm:h-20 justify-between gap-2 sm:gap-4">
 
