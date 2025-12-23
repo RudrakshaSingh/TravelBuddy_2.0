@@ -8,7 +8,7 @@ import ApiError from "../utils/apiError";
 // -----------------------------
 // Ensure uploads directory exists
 // -----------------------------
-const uploadsDir = path.join(process.cwd(), "src", "public", "temp");
+const uploadsDir = path.join(process.cwd(), "public", "temp");
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });

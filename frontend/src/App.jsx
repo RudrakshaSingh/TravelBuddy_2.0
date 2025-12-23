@@ -14,6 +14,7 @@ import ActivityDetails from "./pages/Activity/ActivityDetails";
 import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
+import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
 import PaymentStatus from "./pages/paymentStatus";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import Connections from "./pages/User/Connections";
@@ -22,9 +23,8 @@ import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
 import TravelerProfile from "./pages/User/TravelerProfile";
 import HomePage from "./pages/userHome";
-import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
-import UserPosts from "./pages/UserPosts/UserPosts";
 import UploadPost from "./pages/UserPosts/UploadPost";
+import UserPosts from "./pages/UserPosts/UserPosts";
 
 function App() {
   return (

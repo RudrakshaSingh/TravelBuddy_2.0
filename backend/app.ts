@@ -5,13 +5,13 @@ import morgan from "morgan";
 
 import connectToDB from "./db/db";
 import errorMiddleware from "./middlewares/errorMiddleware";
+import activityRoutes from "./routes/activityRoutes";
 import aiRoutes from "./routes/aiRoute";
 import friendRoutes from "./routes/friendRoute";
 import placesRoutes from "./routes/placesRoute";
+import postRoutes from "./routes/postRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import userRoutes from "./routes/userRoute";
-import activityRoutes from "./routes/activityRoutes";
-import postRoutes from "./routes/postRoutes";
 
 const app: Application = express();
 

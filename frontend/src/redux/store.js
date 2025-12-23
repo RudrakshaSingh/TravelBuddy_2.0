@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import userReducer from './slices/userSlice';
 import activityReducer from './slices/ActivitySlice';
 import aiReducer from './slices/aiSlice';
 import postReducer from './slices/postSlice';
+import userReducer from './slices/userSlice';
 
 const store = configureStore({
   reducer: {

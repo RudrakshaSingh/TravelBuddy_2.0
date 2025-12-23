@@ -5,7 +5,6 @@ import {
     createActivity,
     getActivities,
     getActivityById,
-
 } from "../controller/activityController";
 import { requireProfile } from "../middlewares/authMiddleware";
 import upload from "../middlewares/multerMiddleware";
