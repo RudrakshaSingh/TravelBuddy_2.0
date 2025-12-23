@@ -25,6 +25,7 @@ import HomePage from "./pages/userHome";
 import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
 import UserPosts from "./pages/UserPosts/UserPosts";
 import UploadPost from "./pages/UserPosts/UploadPost";
+import ManagePost from "./pages/UserPosts/ManagePost";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
        <Route path="ai-trip-planner" element={<AuthGuard><AiTripPlanner /></AuthGuard>} />
        <Route path="user-posts" element={<AuthGuard><UserPosts /></AuthGuard>} />
        <Route path="upload-post" element={<AuthGuard><UploadPost /></AuthGuard>} />
+       <Route path="manage-posts" element={<AuthGuard><ManagePost /></AuthGuard>} />
      </Route>
 
     </Routes>

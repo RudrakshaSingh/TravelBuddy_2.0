@@ -51,6 +51,23 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
+// Fetch user's own posts
+export const fetchMyPosts = createAsyncThunk(
+  'post/fetchMyPosts',
+  async ({ getToken, page = 1, limit = 100 }, { rejectWithValue }) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      // This will fetch posts created by the current user
+      const response = await postService.getPosts(authApi, { page, limit, myPosts: true });
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to fetch your posts'
+      );
+    }
+  }
+);
+
 // Fetch nearby posts
 export const fetchNearbyPosts = createAsyncThunk(
   'post/fetchNearby',
@@ -267,6 +284,25 @@ const postSlice = createSlice({
       .addCase(fetchPosts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || 'Failed to fetch posts';
+      })
+
+      // Fetch My Posts
+      .addCase(fetchMyPosts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyPosts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const { posts, pagination } = action.payload.data;
+
+        // Store in myPosts array
+        state.myPosts = posts;
+        state.pagination = pagination;
+        state.error = null;
+      })
+      .addCase(fetchMyPosts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Failed to fetch your posts';
       })
 
       // Fetch Nearby Posts
