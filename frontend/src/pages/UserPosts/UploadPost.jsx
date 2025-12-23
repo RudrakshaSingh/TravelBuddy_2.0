@@ -559,53 +559,6 @@ function UploadPost() {
           {/* Submit Button */}
           <div className="flex gap-4 pt-4">
             <button
-createPost: Request received
-createPost: Processing 1 files
-createPost: Uploading file 4.jpg
-createPost: DB Error TypeError: next is not a function
-    at model.<anonymous> (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\models\postModel.ts:136:3)
-    at Kareem.execPre (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\kareem\index.js:63:39)
-    at async model.$__save (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:369:5)
-    at async model.save (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:609:5)
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:2722:9
-    at async Promise.all (index 0)
-    at async Function.create (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:2707:11)
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\controller\postController.ts:86:20
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\utils\asyncHandler.ts:14:7
-Deleting from Cloudinary → travelBuddy/uc8cdgcueaazrtztqbp9
-Error caught in middleware: TypeError: next is not a function
-    at model.<anonymous> (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\models\postModel.ts:136:3)
-    at Kareem.execPre (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\kareem\index.js:63:39)
-    at async model.$__save (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:369:5)
-    at async model.save (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:609:5)
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:2722:9
-    at async Promise.all (index 0)
-    at async Function.create (C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\node_modules\mongoose\lib\model.js:2707:11)
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\controller\postController.ts:86:20
-    at async C:\Users\User\OneDrive\Pictures\Desktop\Travel Buddy\TravelBuddy_2.0\backend\utils\asyncHandler.ts:14:7
-POST /posts 500 11682.239 ms - 64
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
               type="button"
               onClick={() => navigate(-1)}
               className="flex-1 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
