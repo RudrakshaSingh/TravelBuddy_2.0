@@ -26,54 +26,67 @@ import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
 import UserPosts from "./pages/UserPosts/UserPosts";
 import UploadPost from "./pages/UserPosts/UploadPost";
 import ManagePost from "./pages/UserPosts/ManagePost";
+import ReadArticle from "./pages/UserPosts/RealArticle";
+import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
+import TermsOfService from "./pages/miscellaneous/TermsOfService";
+import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
+import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
+import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
 
 function App() {
   return (
     <Routes >
      <Route path="/" element={<Layout />} >
        <Route index element={
-         <AuthGuard>
-           <HomePage />
-         </AuthGuard>
-       } />
-       <Route path="sign-up/*" element={<SignUpPage />} />
-       <Route path="sign-in/*" element={<SignInPage />} />
-       <Route path="profile" element={
-         <AuthGuard>
-           <ProfilePage />
-         </AuthGuard>
-       } />
-       <Route path="connections" element={<AuthGuard><Connections /></AuthGuard>} />
-       <Route path="complete-registration" element={<CompleteRegistration />} />
-       <Route path="about-us" element={<AboutUs />} />
+          <AuthGuard>
+            <HomePage />
+          </AuthGuard>
+        } />
+        <Route path="sign-up/*" element={<SignUpPage />} />
+        <Route path="sign-in/*" element={<SignInPage />} />
+        <Route path="profile" element={
+          <AuthGuard>
+            <ProfilePage />
+          </AuthGuard>
+        } />
+        <Route path="connections" element={<AuthGuard><Connections /></AuthGuard>} />
+        <Route path="complete-registration" element={<CompleteRegistration />} />
+        <Route path="about-us" element={<AboutUs />} />
 
-       {/* Map Routes */}
-       <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
-       <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
-       <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
-       <Route path="map/food-nightlife" element={<AuthGuard><FoodNightlife /></AuthGuard>} />
-       <Route path="map/shopping" element={<AuthGuard><ShoppingEntertainment /></AuthGuard>} />
-       <Route path="map/emergency" element={<AuthGuard><EmergencyServices /></AuthGuard>} />
-       <Route path="map/transport" element={<AuthGuard><TransportTravel /></AuthGuard>} />
-       <Route path="traveler/:id" element={<AuthGuard><TravelerProfile /></AuthGuard>} />
+        {/* Map Routes */}
+        <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
+        <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
+        <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
+        <Route path="map/food-nightlife" element={<AuthGuard><FoodNightlife /></AuthGuard>} />
+        <Route path="map/shopping" element={<AuthGuard><ShoppingEntertainment /></AuthGuard>} />
+        <Route path="map/emergency" element={<AuthGuard><EmergencyServices /></AuthGuard>} />
+        <Route path="map/transport" element={<AuthGuard><TransportTravel /></AuthGuard>} />
+        <Route path="traveler/:id" element={<AuthGuard><TravelerProfile /></AuthGuard>} />
 
-       {/* Activity Routes */}
-       <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
-       <Route path="activities" element={<AuthGuard><ActivityNearMe /></AuthGuard>} />
-       <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
-       <Route path="payment-status" element={<AuthGuard><PaymentStatus /></AuthGuard>} />
-       <Route path="activity/:id" element={<AuthGuard><ActivityDetails /></AuthGuard>} />
+        {/* Activity Routes */}
+        <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
+        <Route path="activities" element={<AuthGuard><ActivityNearMe /></AuthGuard>} />
+        <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
+        <Route path="payment-status" element={<AuthGuard><PaymentStatus /></AuthGuard>} />
+        <Route path="activity/:id" element={<AuthGuard><ActivityDetails /></AuthGuard>} />
 
-       {/* Ai Features Routes */}
-       <Route path="ai-trip-planner" element={<AuthGuard><AiTripPlanner /></AuthGuard>} />
-       <Route path="user-posts" element={<AuthGuard><UserPosts /></AuthGuard>} />
-       <Route path="upload-post" element={<AuthGuard><UploadPost /></AuthGuard>} />
-       <Route path="manage-posts" element={<AuthGuard><ManagePost /></AuthGuard>} />
-     </Route>
+        {/* Ai Features Routes */}
+        <Route path="ai-trip-planner" element={<AuthGuard><AiTripPlanner /></AuthGuard>} />
+        <Route path="user-posts" element={<AuthGuard><UserPosts /></AuthGuard>} />
+        <Route path="upload-post" element={<AuthGuard><UploadPost /></AuthGuard>} />
+        <Route path="manage-posts" element={<AuthGuard><ManagePost /></AuthGuard>} />
+        <Route path="read-article" element={<AuthGuard><ReadArticle /></AuthGuard>} />
+
+        {/* Miscellaneous/Legal Pages */}
+        <Route path="privacy" element={<PrivacyPolicy />} />
+        <Route path="terms" element={<TermsOfService />} />
+        <Route path="cookies" element={<CookiePolicy />} />
+        <Route path="guidelines" element={<CommunityGuidelines />} />
+        <Route path="refund" element={<RefundPolicy />} />
+      </Route>
 
     </Routes>
   );
 }
 
 export default App;
-
