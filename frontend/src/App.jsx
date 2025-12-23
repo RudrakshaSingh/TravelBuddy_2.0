@@ -33,6 +33,14 @@ import ManagePost from "./pages/UserPosts/ManagePost";
 import ReadArticle from "./pages/UserPosts/RealArticle";
 import UploadPost from "./pages/UserPosts/UploadPost";
 import UserPosts from "./pages/UserPosts/UserPosts";
+import ManageArticle from "./pages/UserPosts/ManageArticle";
+import UploadArticle from "./pages/UserPosts/UploadArticle";
+import ArticleDetail from "./pages/UserPosts/ArticleDetail";
+import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
+import TermsOfService from "./pages/miscellaneous/TermsOfService";
+import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
+import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
+import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
 
 function App() {
   return (
@@ -78,6 +86,9 @@ function App() {
         <Route path="upload-post" element={<AuthGuard><UploadPost /></AuthGuard>} />
         <Route path="manage-posts" element={<AuthGuard><ManagePost /></AuthGuard>} />
         <Route path="read-article" element={<AuthGuard><ReadArticle /></AuthGuard>} />
+        <Route path="article/:id" element={<AuthGuard><ArticleDetail /></AuthGuard>} />
+        <Route path="upload-article" element={<AuthGuard><UploadArticle /></AuthGuard>} />
+        <Route path="manage-article" element={<AuthGuard><ManageArticle /></AuthGuard>} />
 
         {/* Miscellaneous/Legal Pages */}
         <Route path="privacy" element={<PrivacyPolicy />} />

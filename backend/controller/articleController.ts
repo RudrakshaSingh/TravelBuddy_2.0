@@ -3,16 +3,15 @@ import mongoose from "mongoose";
 
 import uploadOnCloudinary from "../middlewares/cloudinary";
 import deleteFromCloudinaryByUrl from "../middlewares/deleteCloudinary";
-import { Post } from "../models/postModel";
-import { User } from "../models/userModel";
+import { Article } from "../models/articleModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
 
-// Create a new post
-export const createPost = asyncHandler(
+// Create a new article
+export const createArticle = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    console.log("createPost: Request received");
+    console.log("createArticle: Request received");
 
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
@@ -21,58 +20,41 @@ export const createPost = asyncHandler(
     const user = req.user;
     const userId = user._id;
 
-    const { caption, locationName, lat, lng, tags, visibility } = req.body;
+    const { title, content, excerpt, category, tags, visibility, status } =
+      req.body;
 
-    if (!caption) {
-      throw new ApiError(400, "Caption is required");
+    if (!title || !content) {
+      throw new ApiError(400, "Title and content are required");
     }
 
-    // Handle file uploads (images/videos)
+    // Handle file uploads (cover image and other images)
     let files: Express.Multer.File[] = [];
     if (Array.isArray(req.files)) {
       files = req.files;
     } else if (req.files && typeof req.files === "object") {
-      files = [
-        ...((req.files as any).images || []),
-        ...((req.files as any).videos || []),
-      ];
+      files = [...((req.files as any).images || [])];
     }
 
-    // Upload media to Cloudinary
+    console.log(`createArticle: Processing ${files.length} files`);
+
     const uploadedImageUrls: string[] = [];
-    const uploadedVideoUrls: string[] = [];
 
     try {
       for (const file of files) {
-        console.log(`createPost: Uploading file ${file.originalname}`);
+        console.log(`createArticle: Uploading file ${file.originalname}`);
         const result = await uploadOnCloudinary(file.path);
         if (!result) {
           throw new ApiError(500, "Media upload failed");
         }
-
-        // Determine if it's an image or video based on mimetype
-        if (file.mimetype.startsWith("image/")) {
-          uploadedImageUrls.push(result.secure_url);
-        } else if (file.mimetype.startsWith("video/")) {
-          uploadedVideoUrls.push(result.secure_url);
-        }
+        uploadedImageUrls.push(result.secure_url);
       }
     } catch (err) {
-      console.error("createPost: Upload error", err);
+      console.error("createArticle: Upload error", err);
       // Cleanup uploaded files
-      for (const url of [...uploadedImageUrls, ...uploadedVideoUrls]) {
+      for (const url of uploadedImageUrls) {
         await deleteFromCloudinaryByUrl(url);
       }
       throw err;
-    }
-
-    // Prepare location object
-    let location;
-    if (locationName && lat !== undefined && lng !== undefined) {
-      location = {
-        name: locationName,
-        coordinates: [Number(lng), Number(lat)],
-      };
     }
 
     // Parse tags if it's a string
@@ -82,38 +64,40 @@ export const createPost = asyncHandler(
     }
 
     try {
-      const post = await Post.create({
+      const article = await Article.create({
         userId: userId.toString(),
         userName: user.name,
         userAvatar: user.profileImage || "",
-        userLocation: user.location || "",  // Use the location name field from user
-        image: uploadedImageUrls[0] || "",
+        title,
+        content,
+        excerpt: excerpt || content.substring(0, 250) + "...",
+        coverImage: uploadedImageUrls[0] || "",
         images: uploadedImageUrls,
-        videos: uploadedVideoUrls,
-        caption,
-        location,
+        category: category || "Travel Tips",
         tags: parsedTags,
         visibility: visibility || "Public",
+        status: status || "Draft",
         likes: [],
         likesCount: 0,
         comments: [],
         commentsCount: 0,
         shares: 0,
+        views: 0,
       });
 
-      if (!post) {
-        throw new ApiError(500, "Failed to create post");
+      if (!article) {
+        throw new ApiError(500, "Failed to create article");
       }
 
-      console.log("createPost: Created post", post._id);
+      console.log("createArticle: Created article", article._id);
 
       return res
         .status(201)
-        .json(new ApiResponse(201, post, "Post created successfully"));
+        .json(new ApiResponse(201, article, "Article created successfully"));
     } catch (err) {
-      console.error("createPost: DB Error", err);
+      console.error("createArticle: DB Error", err);
       // Cleanup uploaded files if DB fails
-      for (const url of [...uploadedImageUrls, ...uploadedVideoUrls]) {
+      for (const url of uploadedImageUrls) {
         await deleteFromCloudinaryByUrl(url);
       }
       throw err;
@@ -121,14 +105,16 @@ export const createPost = asyncHandler(
   }
 );
 
-// Get all posts (feed) with pagination
-export const getPosts = asyncHandler(
+// Get all articles (feed) with pagination
+export const getArticles = asyncHandler(
   async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
     const visibility = req.query.visibility as string;
+    const category = req.query.category as string;
+    const status = req.query.status as string;
     const userId = req.query.userId as string;
 
     const filter: any = {};
@@ -137,8 +123,21 @@ export const getPosts = asyncHandler(
     if (visibility) {
       filter.visibility = visibility;
     } else {
-      // Default to public posts only
+      // Default to public articles only
       filter.visibility = "Public";
+    }
+
+    // Filter by category
+    if (category) {
+      filter.category = category;
+    }
+
+    // Filter by status
+    if (status) {
+      filter.status = status;
+    } else {
+      // Default to published articles only
+      filter.status = "Published";
     }
 
     // Filter by user
@@ -146,34 +145,34 @@ export const getPosts = asyncHandler(
       filter.userId = userId;
     }
 
-    const posts = await Post.find(filter)
+    const articles = await Article.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const totalPosts = await Post.countDocuments(filter);
+    const totalArticles = await Article.countDocuments(filter);
 
     return res.status(200).json(
       new ApiResponse(
         200,
         {
-          posts,
+          articles,
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil(totalPosts / limit),
-            totalPosts,
-            hasMore: page * limit < totalPosts,
+            totalPages: Math.ceil(totalArticles / limit),
+            totalArticles,
+            hasMore: page * limit < totalArticles,
           },
         },
-        "Posts fetched successfully"
+        "Articles fetched successfully"
       )
     );
   }
 );
 
-// Get MY posts - posts created by the authenticated user
-export const getMyPosts = asyncHandler(
+// Get user's own articles
+export const getMyArticles = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
@@ -184,90 +183,58 @@ export const getMyPosts = asyncHandler(
     const limit = parseInt(req.query.limit as string) || 100;
     const skip = (page - 1) * limit;
 
-    const filter: any = {
-      userId: userId, // Only get posts by this user
-    };
-
-    const posts = await Post.find(filter)
+    const articles = await Article.find({ userId })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const totalPosts = await Post.countDocuments(filter);
+    const totalArticles = await Article.countDocuments({ userId });
 
     return res.status(200).json(
       new ApiResponse(
         200,
         {
-          posts,
+          articles,
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil(totalPosts / limit),
-            totalPosts,
-            hasMore: page * limit < totalPosts,
+            totalPages: Math.ceil(totalArticles / limit),
+            totalArticles,
+            hasMore: page * limit < totalArticles,
           },
         },
-        "Your posts fetched successfully"
+        "Your articles fetched successfully"
       )
     );
   }
 );
 
-// Get nearby posts based on location
-export const getNearbyPosts = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { lat, lng, maxDistance = 10000 } = req.query; // maxDistance in meters, default 10km
-
-    if (!lat || !lng) {
-      throw new ApiError(400, "Latitude and longitude are required");
-    }
-
-    const posts = await Post.find({
-      "location.coordinates": {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: [Number(lng), Number(lat)],
-          },
-          $maxDistance: Number(maxDistance),
-        },
-      },
-      visibility: "Public",
-    })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, posts, "Nearby posts fetched successfully"));
-  }
-);
-
-// Get a single post by ID
-export const getPostById = asyncHandler(
+// Get a single article by ID
+export const getArticleById = asyncHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const post = await Post.findById(id).lean();
+    const article = await Article.findById(id).lean();
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
+
+    // Increment view count
+    await Article.findByIdAndUpdate(id, { $inc: { views: 1 } });
 
     return res
       .status(200)
-      .json(new ApiResponse(200, post, "Post fetched successfully"));
+      .json(new ApiResponse(200, article, "Article fetched successfully"));
   }
 );
 
-// Update a post
-export const updatePost = asyncHandler(
+// Update an article
+export const updateArticle = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
@@ -277,49 +244,50 @@ export const updatePost = asyncHandler(
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const post = await Post.findById(id);
+    const article = await Article.findById(id);
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
 
-    if (post.userId !== userId) {
-      throw new ApiError(403, "You are not allowed to update this post");
+    if (article.userId !== userId) {
+      throw new ApiError(403, "You are not allowed to update this article");
     }
 
-    const { caption, locationName, lat, lng, tags, visibility } = req.body;
+    const { title, content, excerpt, category, tags, visibility, status } =
+      req.body;
 
     const updateData: any = {};
-    if (caption !== undefined) updateData.caption = caption;
+
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (excerpt !== undefined) updateData.excerpt = excerpt;
+    if (category !== undefined) updateData.category = category;
     if (visibility !== undefined) updateData.visibility = visibility;
+    if (status !== undefined) updateData.status = status;
     if (tags !== undefined)
       updateData.tags = typeof tags === "string" ? JSON.parse(tags) : tags;
 
-    if (locationName && lat !== undefined && lng !== undefined) {
-      updateData.location = {
-        name: locationName,
-        coordinates: [Number(lng), Number(lat)],
-      };
-    }
-
     updateData.updatedAt = new Date();
 
-    const updatedPost = await Post.findByIdAndUpdate(id, updateData, {
+    const updatedArticle = await Article.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).lean();
 
     return res
       .status(200)
-      .json(new ApiResponse(200, updatedPost, "Post updated successfully"));
+      .json(
+        new ApiResponse(200, updatedArticle, "Article updated successfully")
+      );
   }
 );
 
-// Delete a post
-export const deletePost = asyncHandler(
+// Delete an article
+export const deleteArticle = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
@@ -329,21 +297,24 @@ export const deletePost = asyncHandler(
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const post = await Post.findById(id);
+    const article = await Article.findById(id);
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
 
-    if (post.userId !== userId) {
-      throw new ApiError(403, "You are not allowed to delete this post");
+    if (article.userId !== userId) {
+      throw new ApiError(403, "You are not allowed to delete this article");
     }
 
     // Delete associated media from Cloudinary
-    const allMedia = [...post.images, ...post.videos].filter((url) => url);
+    const allMedia = [...article.images].filter((url) => url);
+    if (article.coverImage) {
+      allMedia.push(article.coverImage);
+    }
     for (const url of allMedia) {
       try {
         await deleteFromCloudinaryByUrl(url);
@@ -352,15 +323,15 @@ export const deletePost = asyncHandler(
       }
     }
 
-    await Post.findByIdAndDelete(id);
+    await Article.findByIdAndDelete(id);
 
     return res
       .status(200)
-      .json(new ApiResponse(200, null, "Post deleted successfully"));
+      .json(new ApiResponse(200, null, "Article deleted successfully"));
   }
 );
 
-// Like/Unlike a post
+// Like/Unlike an article
 export const toggleLike = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
@@ -371,28 +342,28 @@ export const toggleLike = asyncHandler(
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const post = await Post.findById(id);
+    const article = await Article.findById(id);
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
 
-    const hasLiked = post.likes.includes(userId);
+    const hasLiked = article.likes.includes(userId);
 
-    let updatedPost;
+    let updatedArticle;
     if (hasLiked) {
       // Unlike
-      updatedPost = await Post.findByIdAndUpdate(
+      updatedArticle = await Article.findByIdAndUpdate(
         id,
         { $pull: { likes: userId } },
         { new: true }
       ).lean();
     } else {
       // Like
-      updatedPost = await Post.findByIdAndUpdate(
+      updatedArticle = await Article.findByIdAndUpdate(
         id,
         { $addToSet: { likes: userId } },
         { new: true }
@@ -404,14 +375,14 @@ export const toggleLike = asyncHandler(
       .json(
         new ApiResponse(
           200,
-          { post: updatedPost, liked: !hasLiked },
-          hasLiked ? "Post unliked successfully" : "Post liked successfully"
+          { article: updatedArticle, liked: !hasLiked },
+          hasLiked ? "Article unliked successfully" : "Article liked successfully"
         )
       );
   }
 );
 
-// Add a comment to a post
+// Add a comment to an article
 export const addComment = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
@@ -428,13 +399,13 @@ export const addComment = asyncHandler(
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const post = await Post.findById(id);
+    const article = await Article.findById(id);
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
 
     const comment = {
@@ -445,7 +416,7 @@ export const addComment = asyncHandler(
       createdAt: new Date(),
     };
 
-    const updatedPost = await Post.findByIdAndUpdate(
+    const updatedArticle = await Article.findByIdAndUpdate(
       id,
       { $push: { comments: comment } },
       { new: true }
@@ -453,11 +424,13 @@ export const addComment = asyncHandler(
 
     return res
       .status(201)
-      .json(new ApiResponse(201, updatedPost, "Comment added successfully"));
+      .json(
+        new ApiResponse(201, updatedArticle, "Comment added successfully")
+      );
   }
 );
 
-// Delete a comment from a post
+// Delete a comment from an article
 export const deleteComment = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
     if (!req.user) {
@@ -471,16 +444,16 @@ export const deleteComment = asyncHandler(
       !mongoose.Types.ObjectId.isValid(id) ||
       !mongoose.Types.ObjectId.isValid(commentId)
     ) {
-      throw new ApiError(400, "Invalid post or comment id");
+      throw new ApiError(400, "Invalid article or comment id");
     }
 
-    const post = await Post.findById(id);
+    const article = await Article.findById(id);
 
-    if (!post) {
-      throw new ApiError(404, "Post not found");
+    if (!article) {
+      throw new ApiError(404, "Article not found");
     }
 
-    const comment = post.comments.find(
+    const comment = article.comments.find(
       (c: any) => c._id.toString() === commentId
     );
 
@@ -488,12 +461,12 @@ export const deleteComment = asyncHandler(
       throw new ApiError(404, "Comment not found");
     }
 
-    // Only the comment author or post owner can delete the comment
-    if (comment.userId !== userId && post.userId !== userId) {
+    // Only the comment author or article owner can delete the comment
+    if (comment.userId !== userId && article.userId !== userId) {
       throw new ApiError(403, "You are not allowed to delete this comment");
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(
+    const updatedArticle = await Article.findByIdAndUpdate(
       id,
       { $pull: { comments: { _id: commentId } } },
       { new: true }
@@ -501,7 +474,9 @@ export const deleteComment = asyncHandler(
 
     return res
       .status(200)
-      .json(new ApiResponse(200, updatedPost, "Comment deleted successfully"));
+      .json(
+        new ApiResponse(200, updatedArticle, "Comment deleted successfully")
+      );
   }
 );
 
@@ -511,42 +486,38 @@ export const incrementShare = asyncHandler(
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError(400, "Invalid post id");
+      throw new ApiError(400, "Invalid article id");
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(
+    const updatedArticle = await Article.findByIdAndUpdate(
       id,
       { $inc: { shares: 1 } },
       { new: true }
     ).lean();
 
-    if (!updatedPost) {
-      throw new ApiError(404, "Post not found");
+    if (!updatedArticle) {
+      throw new ApiError(404, "Article not found");
     }
 
     return res
       .status(200)
-      .json(new ApiResponse(200, updatedPost, "Share count updated"));
+      .json(new ApiResponse(200, updatedArticle, "Share count updated"));
   }
 );
 
-// Get posts by tags
-export const getPostsByTags = asyncHandler(
+// Get articles by category
+export const getArticlesByCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const { tags } = req.query;
+    const { category } = req.query;
 
-    if (!tags) {
-      throw new ApiError(400, "Tags parameter is required");
+    if (!category) {
+      throw new ApiError(400, "Category parameter is required");
     }
 
-    const tagArray: string[] =
-      typeof tags === "string"
-        ? tags.split(",").map((t) => t.trim())
-        : (tags as string[]);
-
-    const posts = await Post.find({
-      tags: { $in: tagArray },
+    const articles = await Article.find({
+      category,
       visibility: "Public",
+      status: "Published",
     })
       .sort({ createdAt: -1 })
       .limit(20)
@@ -555,7 +526,11 @@ export const getPostsByTags = asyncHandler(
     return res
       .status(200)
       .json(
-        new ApiResponse(200, posts, "Posts by tags fetched successfully")
+        new ApiResponse(
+          200,
+          articles,
+          "Articles by category fetched successfully"
+        )
       );
   }
 );

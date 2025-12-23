@@ -1,63 +1,141 @@
 # Travel Buddy 2.0 🌍✈️
 
-Travel Buddy 2.0 is your ultimate travel companion application, designed to connect travelers, simplify trip planning, and discover the world around you. Built with a modern tech stack, it offers real-time interaction, interactive maps, and AI-powered features to make every journey memorable.
+**Travel Buddy 2.0** is your ultimate travel companion application, designed to connect travelers worldwide, simplify trip planning, and discover the world around you. Built with a modern MERN stack, it offers real-time interaction, AI-powered features, interactive maps, and a vibrant social platform for travel enthusiasts.
+
+---
 
 ## ✨ Key Features
 
-*   **👥 User Authentication**: Secure and seamless sign-up/login using **Clerk**.
-*   **🗺️ Interactive Maps**:
-    *   Find **Nearby Hotels**, **Tourist Places**, **Restaurants**, **Shopping**, **Emergency Services**, and **Transport**.
-    *   Locate fellow travelers in your vicinity.
-    *   Powered by **Google Maps API** with Places Autocomplete.
-*   **💬 Real-Time Chat**: Connect instantly with other travelers using **Socket.io**.
-*   **📝 Activity Management**:
-    *   Create and manage travel activities with photo/video uploads.
-    *   **AI-Generated Descriptions**: Automatically generate improved descriptions for your activities using **Groq AI**.
-    *   Voice input support for activity descriptions.
-*   **🤖 AI Trip Planner**:
-    *   Generate personalized day-by-day itineraries based on your preferences.
-    *   Customize by destination, dates, budget, travel style, and interests.
-    *   Download complete itinerary as a text file.
-    *   Powered by **Groq AI (Llama 3.1)**.
-*   **📸 Travel Stories**:
-    *   Share your travel moments with photos and captions.
-    *   Like, comment, and interact with other travelers' posts.
-    *   Instagram-style feed with location tagging.
-*   **💳 Premium Subscription**: Unlock exclusive features with secure payments via **Razorpay**.
-*   **🎨 Modern UI/UX**:
-    *   Responsive design with **Tailwind CSS**.
-    *   Consistent orange/amber color scheme.
-    *   Glassmorphism effects and smooth animations.
-    *   Sticky navbar with auto-hide on scroll.
-*   **📍 Location Features**:
-    *   Real-time location tracking and updates.
-    *   Reverse geocoding for readable addresses.
-    *   Distance-based traveler discovery.
+### 🔐 **User Authentication & Profile**
+*   **Secure Authentication**: Seamless sign-up/login using **Clerk** with social auth support
+*   **User Profiles**: Complete profile management with avatar, bio, and travel preferences
+*   **Premium Subscriptions**: Unlock exclusive features with **Cashfree** payment integration
+*   **Profile Dashboard**: Track your posts, articles, activities, and subscription status
+
+### 📝 **Travel Articles & Blogging**
+*   **Write & Publish Articles**: Share detailed travel guides and stories with rich text
+*   **Article Management**: Full CRUD operations (Create, Read, Update, Delete)
+*   **Cover Images**: Upload stunning cover photos for your articles
+*   **Categories & Tags**: Organize articles by destination, travel type, and interests
+*   **Engagement Features**: Like, comment, and share articles with the community
+*   **Reading Stats**: Track views, read time, and engagement metrics
+*   **Featured Articles**: Homepage spotlight for trending travel stories
+*   **Author Profiles**: View author bio, stats, and all published articles
+
+### 📸 **Travel Posts & Stories**
+*   **Instagram-Style Feed**: Share quick travel moments with photos and captions
+*   **Post Management**: Create, edit, and delete your travel posts
+*   **Interactive Engagement**: Like, comment, and react to posts
+*   **Location Tagging**: Tag your travel destinations on every post
+*   **Media Gallery**: Upload multiple photos per post
+*   **Social Feed**: Discover posts from travelers worldwide
+*   **Community Stats**: Total stories, active travelers, countries visited
+
+### 🎯 **Activity Management**
+*   **Create Activities**: Organize travel activities, tours, and experiences
+*   **Detailed Information**: Title, category, description, date/time, pricing, capacity
+*   **Location Selection**: Interactive **Google Maps** with place search and click-to-select
+*   **AI-Powered Descriptions**: Generate engaging descriptions with **Groq AI** (Llama 3.1)
+*   **Voice Input**: Speech-to-text for activity descriptions
+*   **Media Uploads**: Photos and video URL support via **Cloudinary**
+*   **Activity Discovery**: Browse and search nearby activities
+*   **Host Profiles**: View activity hosts and their offerings
+*   **Booking Management**: Track activity capacity and availability
+
+### 🗺️ **Interactive Maps & Discovery**
+*   **Nearby Travelers**: Find and connect with travelers in your vicinity
+*   **Nearby Hotels**: Discover accommodations with ratings, prices, and amenities
+*   **Tourist Places**: Explore attractions, landmarks, and points of interest
+*   **Restaurants & Dining**: Find places to eat with reviews and distance info
+*   **Shopping & Services**: Locate shops, markets, and local services
+*   **Emergency Services**: Quick access to hospitals, police, and emergency contacts
+*   **Transport Options**: Find nearby transport, parking, and transit stations
+*   **Real-time Location**: Auto-update location with distance-based discovery
+*   **Custom Filters**: Filter by distance, category, price, and ratings
+*   **Interactive Markers**: Click markers for detailed information
+*   **Reverse Geocoding**: Display readable addresses with area and pincode
+*   **Powered by**: **Google Maps API** with Places Autocomplete
+
+### 🤖 **AI Trip Planner**
+*   **Smart Itinerary Generation**: AI-powered day-by-day travel plans
+*   **Custom Preferences**: Budget, travel style (budget/balanced/luxury), interests
+*   **Destination Search**: Google Places autocomplete for destinations
+*   **Flexible Duration**: Plan trips from 1 day to multiple weeks
+*   **Activity Suggestions**: Personalized recommendations for each day
+*   **Download Itinerary**: Export complete plan as formatted text file
+*   **Budget Breakdown**: Estimated costs for accommodation, food, activities
+*   **Powered by**: **Groq AI (Llama 3.1-8b-instant)**
+
+### 💳 **Payment & Subscriptions**
+*   **Cashfree Integration**: Secure payment processing for premium features
+*   **Subscription Plans**: Multiple tiers with different benefits
+*   **Payment Status**: Real-time payment verification and confirmation
+*   **Auto-renewal**: Manage subscription renewals and cancellations
+*   **Payment History**: Track all transactions and invoices
+*   **Secure Checkout**: PCI-compliant payment flow
+
+### 💬 **Real-Time Features**
+*   **Live Chat**: Connect instantly with other travelers using **Socket.io**
+*   **Real-time Notifications**: Get notified about likes, comments, and messages
+*   **Live Location Updates**: Automatic location tracking every minute
+*   **Online Status**: See who's currently active
+
+### 🔒 **Legal & Compliance**
+*   **Privacy Policy**: Comprehensive data protection guidelines
+*   **Terms of Service**: Clear usage terms and conditions
+*   **Cookie Policy**: Transparent cookie usage disclosure
+*   **Refund Policy**: Fair refund and cancellation terms
+*   **Community Guidelines**: Safe and respectful community standards
+
+### 🎨 **Premium UI/UX**
+*   **Modern Dark Theme**: Sleek dark mode with vibrant accent colors
+*   **Responsive Design**: Perfect on mobile, tablet, and desktop
+*   **Glassmorphism**: Beautiful frosted glass effects
+*   **Smooth Animations**: Micro-interactions and transitions
+*   **Sticky Navbar**: Auto-hide on scroll for immersive experience
+*   **Custom Scrollbars**: Hidden scrollbars with maintained functionality
+*   **Loading States**: Skeleton loaders and progress indicators
+*   **Error Handling**: User-friendly error messages and fallbacks
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-*   **Framework**: React 18+ (Vite)
+*   **Framework**: React 19.2 (Vite 7.2)
 *   **Language**: JavaScript / JSX
-*   **State Management**: Redux Toolkit & React Context
-*   **Styling**: Tailwind CSS (v4), Lucide React (Icons)
-*   **Authentication**: Clerk SDK
-*   **Maps**: @react-google-maps/api
-*   **HTTP Client**: Axios
-*   **Real-time**: Socket.io Client
-*   **Notifications**: React Hot Toast
+*   **State Management**: Redux Toolkit 2.11 & React Context
+*   **Styling**: Tailwind CSS v4.1, Lucide React (Icons)
+*   **Authentication**: Clerk SDK 5.57
+*   **Maps**: @react-google-maps/api 2.20
+*   **HTTP Client**: Axios 1.13
+*   **Real-time**: Socket.io Client 4.8
+*   **Notifications**: React Hot Toast 2.6
+*   **Routing**: React Router DOM 7.9
+*   **Payments**: Cashfree Payments SDK
+*   **3D Graphics**: Three.js 0.181
+*   **Backend as a Service**: Firebase 12.6
 
 ### Backend
 *   **Runtime**: Node.js
-*   **Framework**: Express.js
-*   **Language**: TypeScript
-*   **Database**: MongoDB (with Mongoose ODM)
-*   **Real-Time Communication**: Socket.io
-*   **File Storage**: Cloudinary
-*   **Data Validation**: Zod
-*   **AI Integration**: Groq AI (Llama 3.1-8b-instant)
-*   **Payment Gateway**: Razorpay
+*   **Framework**: Express.js 5.2
+*   **Language**: TypeScript 5.9
+*   **Database**: MongoDB (Mongoose ODM 9.0)
+*   **Real-Time Communication**: Socket.io 4.8
+*   **File Storage**: Cloudinary 2.8
+*   **Data Validation**: Zod 4.1
+*   **AI Integration**:
+    *   Groq AI (Llama 3.1-8b-instant) via OpenAI SDK 6.14
+    *   Google Generative AI 0.24
+*   **Payment Gateways**:
+    *   Cashfree (Primary)
+    *   Razorpay (Legacy)
 *   **Maps Integration**: Google Places API
+*   **Authentication**: Clerk SDK Node 4.13
+*   **File Upload**: Multer 2.0
+*   **Dev Tools**: Nodemon, TS-Node, ESLint
+
+---
 
 ## 🚀 Getting Started
 
@@ -104,12 +182,21 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Payments (Razorpay)
+# Payments (Cashfree - Primary)
+CASHFREE_APP_ID=your_cashfree_app_id
+CASHFREE_SECRET_KEY=your_cashfree_secret_key
+CASHFREE_ENV=sandbox  # or 'production'
+
+# Payments (Razorpay - Optional/Legacy)
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 
-# AI Services (Groq)
-GROQ_API_KEY=your_groq_api_key
+# AI Services (Groq/xAI)
+XAI_API_KEY=your_groq_api_key
+GROQ_API_KEY=your_groq_api_key  # Same as XAI_API_KEY
+
+# AI Services (Google Gemini - Optional)
+GEMINI_KEY=your_google_gemini_key
 
 # Google Maps & Places
 GOOGLE_PLACES_API_KEY=your_google_places_key
@@ -151,55 +238,113 @@ npm run dev
 
 The application should now be running at `http://localhost:5173`.
 
+
 ## 📂 Project Structure
 
 ```
 TravelBuddy_2.0/
-├── backend/                # Node.js/Express Backend
-│   ├── controller/         # Request handlers
+├── backend/                    # Node.js/Express Backend (TypeScript)
+│   ├── controller/             # Request handlers
 │   │   ├── activityController.ts
+│   │   ├── articleController.ts
+│   │   ├── postController.ts
 │   │   ├── aifeatureContoller.ts
-│   │   └── userController.ts
-│   ├── models/             # Mongoose schemas
-│   │   ├── Activity.ts
-│   │   ├── User.ts
-│   │   └── Message.ts
-│   ├── routes/             # API routes
+│   │   ├── userController.ts
+│   │   ├── paymentController.ts
+│   │   └── chatController.ts
+│   ├── models/                 # Mongoose schemas
+│   │   ├── activityModel.ts
+│   │   ├── articleModel.ts     # Travel articles/blogs
+│   │   ├── postModel.ts        # Travel posts/stories
+│   │   ├── userModel.ts
+│   │   └── paymentModel.ts
+│   ├── routes/                 # API routes
+│   │   ├── activityRoutes.ts
+│   │   ├── articleRoutes.ts
+│   │   ├── postRoutes.ts
 │   │   ├── aiRoute.ts
-│   │   ├── activityRoute.ts
-│   │   └── userRoute.ts
-│   ├── middlewares/        # Custom middlewares
-│   ├── utils/              # Utility functions
-│   ├── validation/         # Zod schemas
-│   └── server.ts           # Entry point
-│
-├── frontend/               # React Frontend
+│   │   ├── userRoute.ts
+│   │   ├── paymentRoutes.ts
+│   │   └── chatRoutes.ts
+│   ├── middlewares/            # Custom middlewares
+│   │   └── authMiddleware.ts
+│   ├── utils/                  # Utility functions
+│   │   ├── cloudinary.ts
+│   │   └── geocoding.ts
+│   ├── validation/             # Zod schemas
+│   │   ├── userValidation.ts
+│   │   └── activityValidation.ts
+│   ├── interfaces/             # TypeScript interfaces
+│   ├── db/                     # Database configuration
+│   ├── app.ts                  # Express app setup
+│   ├── server.ts               # Entry point
+│   ├── socket.ts               # Socket.io configuration
+│   └── package.json
+
+├── frontend/                   # React Frontend (Vite + React 19)
 │   ├── src/
-│   │   ├── components/     # Reusable components
-│   │   │   └── navbar.jsx
-│   │   ├── pages/          # Application pages
+│   │   ├── components/         # Reusable components
+│   │   │   ├── navbar.jsx
+│   │   │   └── Footer.jsx
+│   │   ├── pages/              # Application pages
 │   │   │   ├── AiFeatures/
 │   │   │   │   └── AiTripPlanner.jsx
 │   │   │   ├── Activity/
-│   │   │   │   └── createActivity.jsx
-│   │   │   ├── UserPosts.jsx
-│   │   │   └── aboutUs.jsx
-│   │   ├── redux/          # State management
+│   │   │   │   ├── createActivity.jsx
+│   │   │   │   ├── ActivityDetails.jsx
+│   │   │   │   ├── getNearByActivity.jsx
+│   │   │   │   └── ManageActivity.jsx
+│   │   │   ├── UserPosts/
+│   │   │   │   ├── UserPosts.jsx          # View all posts
+│   │   │   │   ├── UploadPost.jsx         # Create new post
+│   │   │   │   ├── ManagePost.jsx         # Edit/Delete posts
+│   │   │   │   ├── RealArticle.jsx        # Article feed
+│   │   │   │   ├── ArticleDetail.jsx      # Single article view
+│   │   │   │   ├── UploadArticle.jsx      # Create article
+│   │   │   │   └── ManageArticle.jsx      # Edit/Delete articles
+│   │   │   ├── User/
+│   │   │   │   ├── userProfile.jsx
+│   │   │   │   ├── updateProfile.jsx
+│   │   │   │   ├── NearByTravellers.jsx   # Map view
+│   │   │   │   ├── NearHotels.jsx         # Hotels map
+│   │   │   │   ├── NearTouristPlace.jsx   # Tourist attractions
+│   │   │   │   └── subscriptionPage.jsx
+│   │   │   ├── miscellaneous/
+│   │   │   │   ├── PrivacyPolicy.jsx
+│   │   │   │   ├── TermsOfService.jsx
+│   │   │   │   ├── CookiePolicy.jsx
+│   │   │   │   ├── RefundPolicy.jsx
+│   │   │   │   └── CommunityGuidelines.jsx
+│   │   │   ├── userHome.jsx
+│   │   │   ├── aboutUs.jsx
+│   │   │   └── paymentStatus.jsx
+│   │   ├── redux/              # State management
 │   │   │   ├── slices/
 │   │   │   │   ├── userSlice.js
 │   │   │   │   ├── activitySlice.js
+│   │   │   │   ├── articleSlice.js
+│   │   │   │   ├── postSlice.js
 │   │   │   │   └── aiSlice.js
 │   │   │   ├── services/
 │   │   │   │   └── api.js
 │   │   │   └── store.js
-│   │   ├── context/        # React Context
+│   │   ├── context/            # React Context
 │   │   │   ├── socketContext.jsx
 │   │   │   └── GoogleMapsContext.jsx
-│   │   └── App.jsx
-│   └── index.html
-│
-└── README.md               # Project Documentation
+│   │   ├── utils/              # Helper functions
+│   │   ├── App.jsx             # Main app component
+│   │   └── main.jsx            # Entry point
+│   ├── public/
+│   ├── index.html
+│   └── package.json
+
+├── .gitignore
+├── docker-compose.yml          # Docker configuration
+└── README.md                   # This file
 ```
+
+---
+
 
 ## 🎯 Core Features Deep Dive
 

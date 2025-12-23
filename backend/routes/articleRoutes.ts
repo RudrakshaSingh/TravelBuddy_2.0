@@ -2,18 +2,17 @@ import { Router } from "express";
 
 import {
   addComment,
-  createPost,
+  createArticle,
+  deleteArticle,
   deleteComment,
-  deletePost,
-  getMyPosts,
-  getNearbyPosts,
-  getPostById,
-  getPosts,
-  getPostsByTags,
+  getArticleById,
+  getArticles,
+  getArticlesByCategory,
+  getMyArticles,
   incrementShare,
   toggleLike,
-  updatePost,
-} from "../controller/postController";
+  updateArticle,
+} from "../controller/articleController";
 import { requireProfile } from "../middlewares/authMiddleware";
 import upload from "../middlewares/multerMiddleware";
 
@@ -25,19 +24,15 @@ router.use(requireProfile);
 // Core CRUD
 router.post(
   "/",
-  upload.fields([
-    { name: "images", maxCount: 10 },
-    { name: "videos", maxCount: 3 },
-  ]),
-  createPost
+  upload.fields([{ name: "images", maxCount: 10 }]),
+  createArticle
 );
-router.get("/", getPosts);
-router.get("/my-posts", getMyPosts); // Get posts created by authenticated user
-router.get("/nearby", getNearbyPosts);
-router.get("/tags", getPostsByTags);
-router.get("/:id", getPostById);
-router.put("/:id", updatePost);
-router.delete("/:id", deletePost);
+router.get("/", getArticles);
+router.get("/my-articles", getMyArticles);
+router.get("/category", getArticlesByCategory);
+router.get("/:id", getArticleById);
+router.put("/:id", updateArticle);
+router.delete("/:id", deleteArticle);
 
 // Engagement actions
 router.post("/:id/like", toggleLike);
