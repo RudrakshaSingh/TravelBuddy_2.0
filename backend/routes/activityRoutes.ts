@@ -6,6 +6,7 @@ import {
     deleteActivity,
     getActivities,
     getActivityById,
+    getNearbyActivities,
     getParticipants,
     inviteUsers,
     joinActivity,
@@ -24,6 +25,7 @@ router.use(requireProfile);
 // Core CRUD
 router.post("/", upload.fields([{ name: "photos", maxCount: 5 }]), createActivity);
 router.get("/", getActivities);
+router.get("/nearby", getNearbyActivities);
 router.get("/:id", getActivityById);
 router.put("/:id", updateActivity);
 router.delete("/:id", deleteActivity);
