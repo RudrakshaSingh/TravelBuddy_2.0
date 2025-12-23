@@ -162,3 +162,71 @@ export const generatePlan = asyncHandler(async (req: Request, res: Response, nex
      throw new ApiError(500, error.message || "Failed to generate itinerary via AI");
    }
 })
+
+export const generatePostCaption = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+   const { title, category, location, tags, currentCaption } = req.body;
+
+   console.log('Generating AI post caption:', { title, location, tags });
+
+   // Groq AI uses OpenAI-compatible API
+   const client = new OpenAI({
+     apiKey: process.env.GROQ_API_KEY,
+     baseURL: "https://api.groq.com/openai/v1",
+   });
+
+   try {
+     const prompt = `
+  You are a creative travel content writer who helps travelers share their experiences on social media.
+
+  Transform the user's brief travel experience into an engaging, authentic post caption.
+
+  User's Experience:
+  ${currentCaption ? `Brief notes: "${currentCaption}"` : ''}
+  ${location ? `Location: ${location}` : ''}
+  ${tags ? `Tags/Themes: ${tags}` : ''}
+  ${title ? `Context: ${title}` : ''}
+
+  Requirements:
+  - Write a personal, engaging caption (2-4 sentences for short notes, 4-6 for longer experiences)
+  - Use a conversational, authentic tone (first-person perspective)
+  - Include 1-3 relevant emojis naturally within the text (not at the end)
+  - Capture the emotion and atmosphere of the experience
+  - End with 3-5 relevant hashtags
+  - Make it feel genuine, not overly promotional
+  - If user mentioned specific details, keep them but enhance the storytelling
+  - Don't use marketing language or phrases like "Join us" or "Come experience"
+  - Write as if the user is sharing their personal travel story with friends
+
+  Example style:
+  "Caught the most incredible sunset 🌅 at Bali's hidden beach yesterday. The way the golden light danced on the waves was absolutely mesmerizing. Sometimes the best moments are the unplanned ones ✨ #bali #sunset #travelmoments #beachlife #wanderlust"
+
+  Now write the caption based on the user's experience:
+  `;
+
+     const completion = await client.chat.completions.create({
+       model: "llama-3.1-8b-instant",
+       messages: [{ role: "user", content: prompt }],
+       temperature: 0.8, // Higher temperature for more creative, varied outputs
+     });
+
+     const caption = completion.choices[0]?.message?.content;
+
+     if (!caption) {
+       throw new Error("No caption generated");
+     }
+
+     // Clean up the caption (remove quotes if AI added them)
+     const cleanedCaption = caption.replace(/^["']|["']$/g, '').trim();
+
+     return res.status(200).json(new ApiResponse(200, cleanedCaption, "Caption generated successfully"));
+
+   } catch (error: any) {
+     console.error("Groq AI Error:", error);
+
+     if (error.status === 401) {
+        throw new ApiError(401, "Invalid Groq API key.");
+     }
+
+     throw new ApiError(500, error.message || "Failed to generate caption via AI");
+   }
+})

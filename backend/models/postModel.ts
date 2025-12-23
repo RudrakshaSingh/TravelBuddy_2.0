@@ -130,10 +130,9 @@ postSchema.virtual("actualLikesCount").get(function () {
 });
 
 // Pre-save middleware to update counts
-postSchema.pre("save", function (this: any, next: any) {
+postSchema.pre("save", function () {
   this.likesCount = this.likes.length;
   this.commentsCount = this.comments.length;
-  next();
 });
 
 export const Post = mongoose.model<IPost>("Post", postSchema);

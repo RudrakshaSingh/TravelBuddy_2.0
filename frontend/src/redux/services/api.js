@@ -290,6 +290,11 @@ export const aiService = {
   generateDescription: async (authApi, activityData) => {
     const response = await authApi.post('/ai/generate-description', activityData);
     return response.data;
+  },
+
+  generatePostCaption: async (authApi, postData) => {
+    const response = await authApi.post('/ai/generate-post-caption', postData);
+    return response.data;
   }
 };
 

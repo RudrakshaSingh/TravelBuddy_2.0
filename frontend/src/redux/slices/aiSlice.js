@@ -41,6 +41,21 @@ export const generateDescription = createAsyncThunk(
   }
 );
 
+export const generatePostCaption = createAsyncThunk(
+  'ai/generatePostCaption',
+  async ({ getToken, postData }, { rejectWithValue }) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      const response = await aiService.generatePostCaption(authApi, postData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to generate post caption'
+      );
+    }
+  }
+);
+
 // AI slice
 const aiSlice = createSlice({
   name: 'ai',
@@ -85,6 +100,20 @@ const aiSlice = createSlice({
       .addCase(generateDescription.rejected, (state, action) => {
         state.isGenerating = false;
         state.error = action.payload || 'Failed to generate description';
+      })
+      // Generate Post Caption
+      .addCase(generatePostCaption.pending, (state) => {
+        state.isGenerating = true;
+        state.error = null;
+      })
+      .addCase(generatePostCaption.fulfilled, (state, action) => {
+        state.isGenerating = false;
+        state.description = action.payload.data;
+        state.error = null;
+      })
+      .addCase(generatePostCaption.rejected, (state, action) => {
+        state.isGenerating = false;
+        state.error = action.payload || 'Failed to generate post caption';
       });
   },
 });
