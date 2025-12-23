@@ -87,9 +87,7 @@ export const createPost = asyncHandler(
         userId: userId.toString(),
         userName: user.name,
         userAvatar: user.profileImage || "",
-        userLocation: user.currentLocation
-          ? `${user.currentLocation.coordinates[1]}, ${user.currentLocation.coordinates[0]}`
-          : "",
+        userLocation: user.location || "",  // Use the location name field from user
         image: uploadedImageUrls[0] || "",
         images: uploadedImageUrls,
         videos: uploadedVideoUrls,

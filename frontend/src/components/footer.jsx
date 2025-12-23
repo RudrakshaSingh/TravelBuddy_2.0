@@ -19,9 +19,11 @@ import {
   Users,
   Youtube} from 'lucide-react';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Footer() {
   const [email, setEmail] = useState('');
+  const navigate = useNavigate();
 
   const handleNewsletterSubmit = () => {
     if (email.trim()) {
@@ -32,8 +34,7 @@ function Footer() {
   };
 
   const handleNavigation = (path) => {
-    console.log(`Navigating to: ${path}`);
-    // Add navigation logic here
+    navigate(path);
   };
 
   const quickLinks = [
