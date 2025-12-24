@@ -277,6 +277,30 @@ export const activityService = {
   getActivityById: async (authApi, id) => {
     const response = await authApi.get(`/activities/${id}`);
     return response.data;
+  },
+
+  // Create payment order for joining activity
+  createPaymentOrder: async (authApi, activityId) => {
+    const response = await authApi.post(`/activities/${activityId}/payment`);
+    return response.data;
+  },
+
+  // Verify payment and join activity
+  verifyPayment: async (authApi, { orderId, activityId }) => {
+    const response = await authApi.post('/activities/payment/verify', { orderId, activityId });
+    return response.data;
+  },
+
+  // Join activity directly (for free activities or after payment)
+  joinActivity: async (authApi, activityId) => {
+    const response = await authApi.post(`/activities/${activityId}/join`);
+    return response.data;
+  },
+
+  // Leave activity
+  leaveActivity: async (authApi, activityId) => {
+    const response = await authApi.post(`/activities/${activityId}/leave`);
+    return response.data;
   }
 };
 
@@ -349,6 +373,16 @@ export const postService = {
     if (userId) params.append('userId', userId);
 
     const response = await authApi.get(`/posts?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get MY posts - posts created by authenticated user
+  getMyPosts: async (authApi, { page = 1, limit = 100 } = {}) => {
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('limit', limit);
+
+    const response = await authApi.get(`/posts/my-posts?${params.toString()}`);
     return response.data;
   },
 

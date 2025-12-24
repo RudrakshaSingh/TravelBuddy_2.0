@@ -4,6 +4,7 @@ import AuthGuard from "./components/AuthGuard";
 import EmergencyServices from "./components/EmergencyServices";
 import FoodNightlife from "./components/FoodNightlife";
 import Layout from "./components/layout";
+import NearbyActivities from "./components/NearbyActivities";
 import NearByTravellers from "./components/NearByTravellers";
 import NearHotels from "./components/NearHotels";
 import ShoppingEntertainment from "./components/ShoppingEntertainment";
@@ -11,9 +12,16 @@ import TouristPlaces from "./components/TouristPlaces";
 import TransportTravel from "./components/TransportTravel";
 import AboutUs from "./pages/aboutUs";
 import ActivityDetails from "./pages/Activity/ActivityDetails";
+import ActivityPaymentStatus from "./pages/Activity/ActivityPaymentStatus";
 import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
+import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
+import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
+import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
+import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
+import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
+import TermsOfService from "./pages/miscellaneous/TermsOfService";
 import PaymentStatus from "./pages/paymentStatus";
 import CompleteRegistration from "./pages/User/completeRegistration";
 import Connections from "./pages/User/Connections";
@@ -22,13 +30,13 @@ import SignUpPage from "./pages/User/signUp";
 import SignInPage from "./pages/User/singIn";
 import TravelerProfile from "./pages/User/TravelerProfile";
 import HomePage from "./pages/userHome";
-import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
-import UserPosts from "./pages/UserPosts/UserPosts";
-import UploadPost from "./pages/UserPosts/UploadPost";
 import ManagePost from "./pages/UserPosts/ManagePost";
 import ReadArticle from "./pages/UserPosts/RealArticle";
+import UploadPost from "./pages/UserPosts/UploadPost";
+import UserPosts from "./pages/UserPosts/UserPosts";
 import ManageArticle from "./pages/UserPosts/ManageArticle";
 import UploadArticle from "./pages/UserPosts/UploadArticle";
+import ArticleDetail from "./pages/UserPosts/ArticleDetail";
 import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
 import TermsOfService from "./pages/miscellaneous/TermsOfService";
 import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
@@ -57,6 +65,7 @@ function App() {
 
         {/* Map Routes */}
         <Route path="map" element={<AuthGuard><NearByTravellers /></AuthGuard>} />
+        <Route path="map/nearby-activities" element={<AuthGuard><NearbyActivities /></AuthGuard>} />
         <Route path="map/hotels" element={<AuthGuard><NearHotels /></AuthGuard>} />
         <Route path="map/tourist-places" element={<AuthGuard><TouristPlaces /></AuthGuard>} />
         <Route path="map/food-nightlife" element={<AuthGuard><FoodNightlife /></AuthGuard>} />
@@ -70,6 +79,7 @@ function App() {
         <Route path="activities" element={<AuthGuard><ActivityNearMe /></AuthGuard>} />
         <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
         <Route path="payment-status" element={<AuthGuard><PaymentStatus /></AuthGuard>} />
+        <Route path="activity-payment-status" element={<AuthGuard><ActivityPaymentStatus /></AuthGuard>} />
         <Route path="activity/:id" element={<AuthGuard><ActivityDetails /></AuthGuard>} />
 
         {/* Ai Features Routes */}
@@ -78,6 +88,7 @@ function App() {
         <Route path="upload-post" element={<AuthGuard><UploadPost /></AuthGuard>} />
         <Route path="manage-posts" element={<AuthGuard><ManagePost /></AuthGuard>} />
         <Route path="read-article" element={<AuthGuard><ReadArticle /></AuthGuard>} />
+        <Route path="article/:id" element={<AuthGuard><ArticleDetail /></AuthGuard>} />
         <Route path="upload-article" element={<AuthGuard><UploadArticle /></AuthGuard>} />
         <Route path="manage-article" element={<AuthGuard><ManageArticle /></AuthGuard>} />
 
