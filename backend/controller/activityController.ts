@@ -1,9 +1,11 @@
+
 import {Request, Response } from "express";
 import mongoose from "mongoose";
 
 import uploadOnCloudinary from "../middlewares/cloudinary";
 import deleteFromCloudinaryByUrl from "../middlewares/deleteCloudinary";
 import { Activity } from "../models/activityModel";
+import { ActivityPayment } from "../models/activityPaymentModel";
 import { User } from "../models/userModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
@@ -341,11 +343,16 @@ export const joinActivity = asyncHandler(
        );
     }
 
-    /* 👇 PAYMENT CHECK GOES HERE (FUTURE)
-   - You already know activity exists
-   - You know userId
-   - Before any state change
-    */
+    if(activity.price > 0)  {
+      const payment = await ActivityPayment.findOne({userId, activityId: id, status: "SUCCESS"});
+
+      if(!payment) {
+        throw new ApiError(
+          402, 
+          "Payment required to join this activity"
+        )
+      }
+    }
 
     if(activity.participants.some(
       (participantId) => participantId.toString() === userId.toString()
@@ -356,7 +363,7 @@ export const joinActivity = asyncHandler(
        );
     }
 
-    //check if space is available
+    //check if space is available, and refund the money if user has paid but space is not available. 
     if (activity.participants.length >= activity.maxCapacity) {
       throw new ApiError(409, "Activity is already full");
     }
