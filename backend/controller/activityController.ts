@@ -349,7 +349,10 @@ export const getActivityById = asyncHandler(
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id).populate("createdBy", "name email mobile profileImage").lean();
+    const activity =  await Activity.findById(id)
+      .populate("createdBy", "name email mobile profileImage")
+      .populate("participants", "name email mobile profileImage")
+      .lean();
 
     //Handle, if the activity not found.
     if(!activity) {
