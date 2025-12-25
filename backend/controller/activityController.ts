@@ -1,6 +1,6 @@
 
-import {Request, Response } from "express";
 import axios from "axios";
+import {Request, Response } from "express";
 import mongoose from "mongoose";
 
 import uploadOnCloudinary from "../middlewares/cloudinary";
@@ -543,6 +543,12 @@ export const joinActivity = asyncHandler(
     .populate("createdBy", "name email mobile profileImage")
     .lean();
 
+    // Also update the user's JoinActivity array
+    await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { JoinActivity: id } }
+    );
+
     //Response
     return res.status(200).json(
           new ApiResponse(
@@ -921,6 +927,12 @@ export const createActivityPaymentOrder = asyncHandler(
       )
         .populate("createdBy", "name email mobile profileImage")
         .lean();
+
+      // Also update the user's JoinActivity array
+      await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { JoinActivity: id } }
+      );
 
       return res.status(200).json(
         new ApiResponse(200, { activity: updatedActivity, isFree: true }, "Joined activity successfully")

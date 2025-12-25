@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 import { Activity } from "../models/activityModel";
 import { ActivityPayment } from "../models/activityPaymentModel";
+import { User } from "../models/userModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
@@ -155,6 +156,19 @@ export const verifyActivityPayment = asyncHandler(
         status: "SUCCESS",
         rawResponse: cfData,
       });
+
+      // Add user to activity participants after successful payment
+      await Activity.findByIdAndUpdate(
+        activityId,
+        { $addToSet: { participants: userId } },
+        { new: true }
+      );
+
+      // Also update the user's JoinActivity array
+      await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { JoinActivity: activityId } }
+      );
 
       return res.status(200).json(
         new ApiResponse(200, "SUCCESS", "Payment verified successfully")
