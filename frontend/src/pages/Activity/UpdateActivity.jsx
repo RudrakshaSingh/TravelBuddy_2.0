@@ -29,7 +29,8 @@ import toast from 'react-hot-toast';
 
 import { useGoogleMaps } from '../../context/GoogleMapsContext';
 import { fetchActivityById } from '../../redux/slices/ActivitySlice';
-import { deleteActivity } from '../../redux/slices/userActivitySlice';
+import { deleteActivity, cancelActivity } from '../../redux/slices/userActivitySlice';
+import ParticipantsTable from './Partipiants';
 
 const getEmbedUrl = (url) => {
   if (!url) return null;
@@ -80,17 +81,27 @@ function ManageActivity() {
     return activityDate < today;
   };
 
+  // Check if activity can be modified (at least 1 day before the activity)
+  const canModifyActivity = () => {
+    if (!currentActivity?.date) return false;
+    const activityDate = new Date(currentActivity.date);
+    const now = new Date();
+    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const timeDifference = activityDate.getTime() - now.getTime();
+    return timeDifference >= oneDayInMs;
+  };
+
   const handleUpdateActivity = () => {
-    if (isActivityPast()) {
-      toast.error('Cannot update a past activity');
+    if (!canModifyActivity()) {
+      toast.error('Activities can only be updated at least 1 day before the event');
       return;
     }
     navigate('/create-activity', { state: { activityId: currentActivity._id } });
   };
 
   const handleDeleteActivity = async () => {
-    if (isActivityPast()) {
-      toast.error('Cannot delete a past activity');
+    if (!canModifyActivity()) {
+      toast.error('Activities can only be deleted at least 1 day before the event');
       return;
     }
 
@@ -109,8 +120,8 @@ function ManageActivity() {
   };
 
   const handleOpenCancelModal = () => {
-    if (isActivityPast()) {
-      toast.error('Cannot cancel a past activity');
+    if (!canModifyActivity()) {
+      toast.error('Activities can only be cancelled at least 1 day before the event');
       return;
     }
     setShowCancelModal(true);
@@ -124,9 +135,11 @@ function ManageActivity() {
 
     setIsCancelling(true);
     try {
-      // For now, we'll use the delete action but in future you can create a separate cancel endpoint
-      // that notifies participants with the cancellation reason
-      await dispatch(deleteActivity({ getToken, activityId: currentActivity._id })).unwrap();
+      await dispatch(cancelActivity({
+        getToken,
+        activityId: currentActivity._id,
+        reason: cancelReason.trim()
+      })).unwrap();
       toast.success('Activity cancelled successfully. Participants will be notified.');
       navigate('/my-activities');
     } catch (err) {
@@ -399,6 +412,12 @@ function ManageActivity() {
                 </div>
               </div>
             )}
+
+            {/* Participants Section */}
+            <ParticipantsTable
+              participants={activity.participants}
+              activityLimit={activity.maxCapacity}
+            />
           </div>
 
           {/* RIGHT: Sidebar */}
@@ -449,55 +468,59 @@ function ManageActivity() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button
-                  onClick={handleUpdateActivity}
-                  disabled={isPast}
-                  className={`w-full py-4 font-bold rounded-xl text-white shadow-lg transition-all flex items-center justify-center gap-2 ${
-                    isPast
-                      ? 'bg-slate-300 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 active:scale-95 shadow-orange-300'
-                  }`}
-                >
-                  <Edit3 className="w-5 h-5" />
-                  Update Activity
-                </button>
+                {canModifyActivity() && (
+                  <>
+                    <button
+                      onClick={handleUpdateActivity}
+                      className="w-full py-4 font-bold rounded-xl text-white shadow-lg transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 active:scale-95 shadow-orange-300"
+                    >
+                      <Edit3 className="w-5 h-5" />
+                      Update Activity
+                    </button>
 
-                {/* Show Delete button if no participants, Cancel button if participants exist */}
-                {currentParticipants === 0 ? (
-                  <button
-                    onClick={handleDeleteActivity}
-                    disabled={isPast || isDeleting}
-                    className={`w-full py-4 font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                      isPast
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        : 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100 active:scale-95'
-                    }`}
-                  >
-                    {isDeleting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Deleting...
-                      </>
+                    {/* Show Delete button if 0 or 1 participant (admin only), Cancel button if more participants */}
+                    {currentParticipants <= 1 ? (
+                      <button
+                        onClick={handleDeleteActivity}
+                        disabled={isDeleting}
+                        className="w-full py-4 font-bold rounded-xl transition-all flex items-center justify-center gap-2 bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100 active:scale-95"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-5 h-5" />
+                            Delete Activity
+                          </>
+                        )}
+                      </button>
                     ) : (
-                      <>
-                        <Trash2 className="w-5 h-5" />
-                        Delete Activity
-                      </>
+                      <button
+                        onClick={handleOpenCancelModal}
+                        className="w-full py-4 font-bold rounded-xl transition-all flex items-center justify-center gap-2 bg-amber-50 text-amber-700 border-2 border-amber-200 hover:bg-amber-100 active:scale-95"
+                      >
+                        <Ban className="w-5 h-5" />
+                        Cancel Activity
+                      </button>
                     )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleOpenCancelModal}
-                    disabled={isPast}
-                    className={`w-full py-4 font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                      isPast
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        : 'bg-amber-50 text-amber-700 border-2 border-amber-200 hover:bg-amber-100 active:scale-95'
-                    }`}
-                  >
-                    <Ban className="w-5 h-5" />
-                    Cancel Activity
-                  </button>
+                  </>
+                )}
+
+                {isPast && (
+                  <div className="text-center py-4 px-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <p className="text-slate-500 font-medium">This activity has already passed</p>
+                    <p className="text-xs text-slate-400 mt-1">Past activities cannot be modified</p>
+                  </div>
+                )}
+
+                {!isPast && !canModifyActivity() && (
+                  <div className="text-center py-4 px-4 bg-amber-50 rounded-xl border border-amber-200">
+                    <p className="text-amber-700 font-medium">Activity is happening soon!</p>
+                    <p className="text-xs text-amber-600 mt-1">Updates are only allowed at least 1 day before the event</p>
+                  </div>
                 )}
 
                 <button
@@ -507,12 +530,6 @@ function ManageActivity() {
                   View Public Page →
                 </button>
               </div>
-
-              {isPast && (
-                <p className="text-center text-xs text-slate-400 mt-4 font-medium">
-                  Past activities cannot be modified
-                </p>
-              )}
             </div>
 
             {/* Host Card */}

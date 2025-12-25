@@ -1,4 +1,4 @@
-import { Users, Crown, UserCheck } from 'lucide-react';
+import { Users, Crown, UserCheck, Mail, Phone } from 'lucide-react';
 
 function ParticipantsTable({ participants = [], activityLimit }) {
   if (!participants || participants.length === 0) {
@@ -65,7 +65,16 @@ function ParticipantsTable({ participants = [], activityLimit }) {
                   )}
                 </div>
                 {participant.email && (
-                  <p className="text-sm text-gray-500">{participant.email}</p>
+                  <p className="text-sm text-gray-500 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-gray-400" />
+                    {participant.email}
+                  </p>
+                )}
+                {participant.mobile && (
+                  <p className="text-sm text-gray-500 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-gray-400" />
+                    {participant.mobile}
+                  </p>
                 )}
               </div>
             </div>
