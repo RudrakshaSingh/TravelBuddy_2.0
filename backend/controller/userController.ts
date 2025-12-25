@@ -75,7 +75,15 @@ export const registerUser = asyncHandler(
 export const getProfile = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?._id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId)
+      .populate({
+        path: "JoinActivity",
+        select: "title date startTime location photos category price maxCapacity participants createdBy isCancelled",
+        populate: {
+          path: "createdBy",
+          select: "name profileImage"
+        }
+      });
 
     if (!user) {
          throw new ApiError(404, "User not found");
@@ -136,6 +144,7 @@ export const updateProfile = asyncHandler(
     }
 
     const {
+      name,
       mobile,
       dob,
       gender,
@@ -193,6 +202,7 @@ export const updateProfile = asyncHandler(
     }
 
     // Update fields if provided (already validated by Zod)
+    if (name) user.name = name;
     if (mobile) user.mobile = mobile;
     if (dob) user.dob = new Date(dob);
     if (gender) user.gender = gender;
