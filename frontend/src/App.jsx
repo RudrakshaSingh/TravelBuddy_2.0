@@ -17,6 +17,8 @@ import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
 import JoinedActivities from "./pages/Activity/JoinedActivities";
+import MyCreatedActivities from "./pages/Activity/MyCreatedActivites";
+import ManageActivity from "./pages/Activity/UpdateActivity";
 import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
 import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
 import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
@@ -38,6 +40,7 @@ import UserPosts from "./pages/UserPosts/UserPosts";
 import ManageArticle from "./pages/UserPosts/ManageArticle";
 import UploadArticle from "./pages/UserPosts/UploadArticle";
 import ArticleDetail from "./pages/UserPosts/ArticleDetail";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -74,10 +77,12 @@ function App() {
         <Route path="create-activity" element={<AuthGuard><CreateActivity /></AuthGuard>} />
         <Route path="activities" element={<AuthGuard><ActivityNearMe /></AuthGuard>} />
         <Route path="joined-activities" element={<AuthGuard><JoinedActivities /></AuthGuard>} />
+        <Route path="my-activities" element={<AuthGuard><MyCreatedActivities /></AuthGuard>} />
         <Route path="subscription" element={<AuthGuard><BuySubscription /></AuthGuard>} />
         <Route path="payment-status" element={<AuthGuard><PaymentStatus /></AuthGuard>} />
         <Route path="activity-payment-status" element={<AuthGuard><ActivityPaymentStatus /></AuthGuard>} />
         <Route path="activity/:id" element={<AuthGuard><ActivityDetails /></AuthGuard>} />
+        <Route path="manage-activity/:id" element={<AuthGuard><ManageActivity /></AuthGuard>} />
 
         {/* Ai Features Routes */}
         <Route path="ai-trip-planner" element={<AuthGuard><AiTripPlanner /></AuthGuard>} />
@@ -95,6 +100,9 @@ function App() {
         <Route path="cookies" element={<CookiePolicy />} />
         <Route path="guidelines" element={<CommunityGuidelines />} />
         <Route path="refund" element={<RefundPolicy />} />
+
+        {/* Catch-all 404 Route */}
+        <Route path="*" element={<NotFound />} />
       </Route>
 
     </Routes>
