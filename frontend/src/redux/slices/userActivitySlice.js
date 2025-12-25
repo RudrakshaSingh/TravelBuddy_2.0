@@ -133,6 +133,22 @@ export const deleteActivity = createAsyncThunk(
   }
 );
 
+// Thunk to cancel an activity
+export const cancelActivity = createAsyncThunk(
+  'userActivity/cancelActivity',
+  async ({ getToken, activityId, reason }, { rejectWithValue }) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      const response = await activityService.cancelActivity(authApi, activityId, reason);
+      return { activityId, response };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to cancel activity'
+      );
+    }
+  }
+);
+
 const userActivitySlice = createSlice({
   name: 'userActivity',
   initialState,
@@ -263,6 +279,24 @@ const userActivitySlice = createSlice({
       })
       .addCase(getParticipants.rejected, (state, action) => {
         state.error = action.payload || 'Failed to fetch participants';
+      })
+
+      // Cancel Activity
+      .addCase(cancelActivity.pending, (state) => {
+        state.createdLoading = true;
+        state.error = null;
+      })
+      .addCase(cancelActivity.fulfilled, (state, action) => {
+        state.createdLoading = false;
+        // Remove the cancelled activity from createdActivities
+        state.createdActivities = state.createdActivities.filter(
+          (activity) => activity._id !== action.payload.activityId
+        );
+        state.error = null;
+      })
+      .addCase(cancelActivity.rejected, (state, action) => {
+        state.createdLoading = false;
+        state.error = action.payload || 'Failed to cancel activity';
       });
   },
 });

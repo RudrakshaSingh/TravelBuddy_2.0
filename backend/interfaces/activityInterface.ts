@@ -42,5 +42,10 @@ export interface IActivity extends Document {
 
   groupExists?: boolean;
 
+  // Cancellation fields
+  isCancelled?: boolean;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+
   createdAt?: Date;
 }

@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
 import { fetchMyCreatedActivities } from "../../redux/slices/userActivitySlice";
 import {
   Loader2, MapPin, Users, Calendar, Search, Star, Clock, Plus,
@@ -186,16 +187,40 @@ function MyCreatedActivities() {
               const activityDate = activity.date ? new Date(activity.date) : new Date();
               const startTime = activity.startTime ? new Date(activity.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "TBD";
               const isPast = activityDate < new Date();
+              const isCancelled = activity.isCancelled === true;
+
+              const handleCardClick = () => {
+                if (isCancelled) {
+                  toast.error('This activity has been cancelled and cannot be managed.');
+                  return;
+                }
+                navigate(`/manage-activity/${activity._id}`);
+              };
 
               return (
                 <div
                   key={activity._id}
-                  onClick={() => navigate(`/manage-activity/${activity._id}`)}
-                  className={`group bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-orange-100 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-900/5 hover:-translate-y-1 cursor-pointer ${isPast ? 'opacity-75' : ''}`}
+                  onClick={handleCardClick}
+                  className={`group bg-white rounded-3xl overflow-hidden border transition-all duration-300 cursor-pointer ${
+                    isCancelled
+                      ? 'opacity-60 border-red-200 hover:border-red-300'
+                      : isPast
+                        ? 'opacity-75 border-slate-100 hover:border-orange-100'
+                        : 'border-slate-100 hover:border-orange-100 hover:shadow-2xl hover:shadow-orange-900/5 hover:-translate-y-1'
+                  }`}
                 >
                   {/* Image Section */}
                   <div className="h-56 relative overflow-hidden">
                     <ImageSlider photos={activity.photos} />
+
+                    {/* Cancelled Overlay */}
+                    {isCancelled && (
+                      <div className="absolute inset-0 bg-red-900/40 flex items-center justify-center">
+                        <span className="px-4 py-2 bg-red-600 text-white text-lg font-bold rounded-lg uppercase tracking-wider shadow-lg">
+                          Cancelled
+                        </span>
+                      </div>
+                    )}
 
                     {/* Floating Badges */}
                     <div className="absolute top-4 left-4">
@@ -205,17 +230,23 @@ function MyCreatedActivities() {
                       </span>
                     </div>
 
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); navigate(`/manage-activity/${activity._id}`); }}
-                        className="p-2 bg-white/90 backdrop-blur-md rounded-full text-slate-700 hover:bg-orange-500 hover:text-white transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {!isCancelled && (
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/manage-activity/${activity._id}`); }}
+                          className="p-2 bg-white/90 backdrop-blur-md rounded-full text-slate-700 hover:bg-orange-500 hover:text-white transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
 
                     <div className="absolute bottom-4 left-4 flex gap-2">
-                      {isPast ? (
+                      {isCancelled ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm bg-red-600 text-white">
+                          Cancelled
+                        </span>
+                      ) : isPast ? (
                         <span className="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm bg-slate-500 text-white">
                           Past Event
                         </span>

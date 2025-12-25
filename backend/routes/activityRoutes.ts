@@ -2,6 +2,7 @@
 import { Router } from "express";
 
 import {
+    cancelActivity,
     createActivity,
     createActivityPaymentOrder,
     deleteActivity,
@@ -35,6 +36,7 @@ router.get("/nearby", getNearbyActivities);
 router.get("/:id", getActivityById);
 router.put("/:id", updateActivity);
 router.delete("/:id", deleteActivity);
+router.post("/:id/cancel", cancelActivity);
 
 // Payment routes (must come before :id/join to avoid conflict)
 router.post("/:id/payment", createActivityPaymentOrder);

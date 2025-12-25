@@ -319,6 +319,12 @@ export const activityService = {
   getActivityParticipants: async (authApi, activityId) => {
     const response = await authApi.get(`/activities/${activityId}/participants`);
     return response.data;
+  },
+
+  // Cancel activity
+  cancelActivity: async (authApi, activityId, reason) => {
+    const response = await authApi.post(`/activities/${activityId}/cancel`, { reason });
+    return response.data;
   }
 };
 

@@ -62,6 +62,11 @@ const activitySchema = new Schema<IActivity>({
 
   groupExists: { type: Boolean, default: false },
 
+  // Cancellation fields
+  isCancelled: { type: Boolean, default: false },
+  cancelledAt: { type: Date },
+  cancellationReason: { type: String },
+
   createdAt: { type: Date, default: Date.now },
 });
 

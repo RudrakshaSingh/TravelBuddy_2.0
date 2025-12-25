@@ -29,7 +29,7 @@ import toast from 'react-hot-toast';
 
 import { useGoogleMaps } from '../../context/GoogleMapsContext';
 import { fetchActivityById } from '../../redux/slices/ActivitySlice';
-import { deleteActivity } from '../../redux/slices/userActivitySlice';
+import { deleteActivity, cancelActivity } from '../../redux/slices/userActivitySlice';
 import ParticipantsTable from './Partipiants';
 
 const getEmbedUrl = (url) => {
@@ -135,9 +135,11 @@ function ManageActivity() {
 
     setIsCancelling(true);
     try {
-      // For now, we'll use the delete action but in future you can create a separate cancel endpoint
-      // that notifies participants with the cancellation reason
-      await dispatch(deleteActivity({ getToken, activityId: currentActivity._id })).unwrap();
+      await dispatch(cancelActivity({
+        getToken,
+        activityId: currentActivity._id,
+        reason: cancelReason.trim()
+      })).unwrap();
       toast.success('Activity cancelled successfully. Participants will be notified.');
       navigate('/my-activities');
     } catch (err) {

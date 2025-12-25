@@ -158,7 +158,8 @@ export const getActivities = asyncHandler(
 
     const activities = await Activity.find(
       {
-        date: { $gte: now}
+        date: { $gte: now },
+        isCancelled: { $ne: true }  // Exclude cancelled activities
       })
       .sort({date: 1, startTime: 1})
       .populate(
@@ -188,6 +189,7 @@ export const getJoinedActivities = asyncHandler(
 
     const activities = await Activity.find({
       participants: userId
+      // Don't filter cancelled - show all activities to participants
     })
       .sort({ date: 1, startTime: 1 })
       .populate("createdBy", "name email mobile profileImage")
@@ -216,6 +218,7 @@ export const getMyCreatedActivities = asyncHandler(
 
     const activities = await Activity.find({
       createdBy: userId
+
     })
       .sort({ date: -1 })
       .populate("createdBy", "name email mobile profileImage")
@@ -245,7 +248,8 @@ export const getNearbyActivities = asyncHandler(
 
     // Build the query
     const query: any = {
-      date: { $gte: now }
+      date: { $gte: now },
+      isCancelled: { $ne: true }  // Exclude cancelled activities
     };
 
     // Geospatial filter if lat/lng provided
@@ -1065,3 +1069,84 @@ export const verifyActivityPayment = asyncHandler(
   }
 );
 
+// Cancel Activity
+export const cancelActivity = asyncHandler(
+  async (req: Request & { user?: any }, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    const userId = req.user._id;
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    // Validate the objectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid activity id");
+    }
+
+    // Validate reason
+    if (!reason || reason.trim() === "") {
+      throw new ApiError(400, "Cancellation reason is required");
+    }
+
+    // Fetch activity
+    const activity = await Activity.findById(id);
+
+    // Handle if activity not found
+    if (!activity) {
+      throw new ApiError(404, "Requested Activity doesn't exist");
+    }
+
+    // Check if user is the creator
+    if (activity.createdBy.toString() !== userId.toString()) {
+      throw new ApiError(403, "You are not allowed to cancel this activity");
+    }
+
+    // Check if activity is already cancelled
+    if (activity.isCancelled) {
+      throw new ApiError(400, "Activity is already cancelled");
+    }
+
+    // Check if activity date is in the past
+    const activityDate = new Date(activity.date);
+    const now = new Date();
+    if (activityDate < now) {
+      throw new ApiError(400, "Cannot cancel a past activity");
+    }
+
+    // Get participants for notification (before clearing them)
+    const participantsToNotify = activity.participants || [];
+
+    // Update activity as cancelled
+    const cancelledActivity = await Activity.findByIdAndUpdate(
+      id,
+      {
+        isCancelled: true,
+        cancelledAt: new Date(),
+        cancellationReason: reason.trim(),
+        // Clear participants as activity is cancelled
+        participants: []
+      },
+      { new: true, runValidators: true }
+    )
+      .populate("createdBy", "name email mobile profileImage")
+      .lean();
+
+    // TODO: Send notification/email to all participants about cancellation
+    // You can implement email sending here using nodemailer or any email service
+    console.log(`Activity ${id} cancelled. Participants to notify:`, participantsToNotify);
+
+    // Response
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          activity: cancelledActivity,
+          participantsNotified: participantsToNotify.length
+        },
+        "Activity cancelled successfully"
+      )
+    );
+  }
+);
