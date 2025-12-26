@@ -348,6 +348,11 @@ export const aiService = {
   generatePackingList: async (authApi, packingData) => {
     const response = await authApi.post('/ai/generate-packing-list', packingData);
     return response.data;
+  },
+
+  generateWeatherForecast: async (authApi, weatherData) => {
+    const response = await authApi.post('/ai/generate-weather', weatherData);
+    return response.data;
   }
 };
 

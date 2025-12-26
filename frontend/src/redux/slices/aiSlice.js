@@ -71,12 +71,28 @@ export const generatePackingList = createAsyncThunk(
   }
 );
 
+export const generateWeatherForecast = createAsyncThunk(
+  'ai/generateWeatherForecast',
+  async ({ getToken, weatherData }, { rejectWithValue }) => {
+    try {
+      const authApi = createAuthenticatedApi(getToken);
+      const response = await aiService.generateWeatherForecast(authApi, weatherData);
+      return response;
+    } catch (error) {
+       return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to generate weather forecast'
+      );
+    }
+  }
+);
+
 // AI slice
 const aiSlice = createSlice({
   name: 'ai',
   initialState: {
     ...initialState,
     packingList: null,
+    weatherData: null,
   },
   reducers: {
     clearError: (state) => {
@@ -90,6 +106,9 @@ const aiSlice = createSlice({
     },
     clearPackingList: (state) => {
       state.packingList = null;
+    },
+    clearWeatherForecast: (state) => {
+      state.weatherData = null;
     },
   },
   extraReducers: (builder) => {
@@ -149,9 +168,23 @@ const aiSlice = createSlice({
       .addCase(generatePackingList.rejected, (state, action) => {
         state.isGenerating = false;
         state.error = action.payload || 'Failed to generate packing list';
+      })
+      // Generate Weather Forecast
+      .addCase(generateWeatherForecast.pending, (state) => {
+        state.isGenerating = true;
+        state.error = null;
+      })
+      .addCase(generateWeatherForecast.fulfilled, (state, action) => {
+        state.isGenerating = false;
+        state.weatherData = action.payload.data;
+        state.error = null;
+      })
+      .addCase(generateWeatherForecast.rejected, (state, action) => {
+        state.isGenerating = false;
+        state.error = action.payload || 'Failed to generate weather forecast';
       });
   },
 });
 
-export const { clearError, clearTripPlan, clearDescription, clearPackingList } = aiSlice.actions;
+export const { clearError, clearTripPlan, clearDescription, clearPackingList, clearWeatherForecast } = aiSlice.actions;
 export default aiSlice.reducer;
