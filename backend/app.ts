@@ -11,6 +11,7 @@ import articleRoutes from "./routes/articleRoutes";
 import chatRoutes from "./routes/chatRoute";
 import friendRoutes from "./routes/friendRoute";
 import groupChatRoutes from "./routes/groupChatRoutes";
+import guideRoutes from "./routes/guideRoute";
 import placesRoutes from "./routes/placesRoute";
 import postRoutes from "./routes/postRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
@@ -53,6 +54,7 @@ app.use("/activities", activityRoutes);
 app.use("/places", placesRoutes);
 app.use("/posts", postRoutes);
 app.use("/articles", articleRoutes);
+app.use("/guides", guideRoutes);
 
 // Global Error Handler
 app.use(errorMiddleware);
