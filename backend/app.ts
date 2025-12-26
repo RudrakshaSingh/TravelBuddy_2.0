@@ -10,10 +10,12 @@ import aiRoutes from "./routes/aiRoute";
 import articleRoutes from "./routes/articleRoutes";
 import chatRoutes from "./routes/chatRoute";
 import friendRoutes from "./routes/friendRoute";
+import groupChatRoutes from "./routes/groupChatRoutes";
 import placesRoutes from "./routes/placesRoute";
 import postRoutes from "./routes/postRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
 import userRoutes from "./routes/userRoute";
+
 
 const app: Application = express();
 
@@ -42,6 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/users", userRoutes);
 app.use("/friends", friendRoutes);
 app.use("/chat", chatRoutes);
+app.use("/group-chats", groupChatRoutes);
 app.use("/subscription", subscriptionRoutes);
 
 
