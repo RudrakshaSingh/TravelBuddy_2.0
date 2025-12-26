@@ -68,4 +68,5 @@ export interface IUser extends Document {
   planEndDate: Date | null;
   planType: (typeof SUBSCRIPTION_PLANS)[number];
   remainingActivityCount: number;
+  isLocalGuide: boolean;
 }

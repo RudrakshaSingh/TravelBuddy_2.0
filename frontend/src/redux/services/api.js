@@ -518,6 +518,185 @@ export const chatService = {
   },
 };
 
+// Guide Service functions
+export const guideService = {
+  // Create guide profile
+  createGuideProfile: async (authApi, data) => {
+    const formData = new FormData();
+    
+    // Append images
+    if (data.coverImages && data.coverImages.length > 0) {
+      data.coverImages.forEach((image) => {
+        if (image instanceof File) {
+          formData.append('coverImages', image);
+        }
+      });
+    }
+    
+    // Append other fields
+    Object.keys(data).forEach(key => {
+      if (key !== 'coverImages') {
+        const value = data[key];
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
+        }
+      }
+    });
+    
+    const response = await authApi.post('/guides', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Update guide profile
+  updateGuideProfile: async (authApi, data) => {
+    const formData = new FormData();
+    
+    // Append new images
+    if (data.newImages && data.newImages.length > 0) {
+      data.newImages.forEach((image) => {
+        if (image instanceof File) {
+          formData.append('coverImages', image);
+        }
+      });
+    }
+    
+    // Append existing images
+    if (data.existingImages) {
+      formData.append('existingImages', JSON.stringify(data.existingImages));
+    }
+    
+    // Append other fields
+    Object.keys(data).forEach(key => {
+      if (key !== 'coverImages' && key !== 'newImages' && key !== 'existingImages') {
+        const value = data[key];
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
+        }
+      }
+    });
+    
+    const response = await authApi.patch('/guides', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Toggle guide status
+  toggleGuideStatus: async (authApi) => {
+    const response = await authApi.patch('/guides/toggle');
+    return response.data;
+  },
+
+  // Get my guide profile
+  getMyGuideProfile: async (authApi) => {
+    const response = await authApi.get('/guides/my-profile');
+    return response.data;
+  },
+
+  // Get guide by ID
+  getGuideById: async (authApi, id) => {
+    const response = await authApi.get(`/guides/${id}`);
+    return response.data;
+  },
+
+  // Get guides with filters
+  getGuides: async (authApi, filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.city) params.append('city', filters.city);
+    if (filters.specialty) params.append('specialty', filters.specialty);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.minRating) params.append('minRating', filters.minRating);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+    
+    const response = await authApi.get(`/guides?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get nearby guides
+  getNearbyGuides: async (authApi, { lat, lng, radius, specialty }) => {
+    const params = new URLSearchParams();
+    params.append('lat', lat);
+    params.append('lng', lng);
+    if (radius) params.append('radius', radius);
+    if (specialty) params.append('specialty', specialty);
+    
+    const response = await authApi.get(`/guides/nearby?${params.toString()}`);
+    return response.data;
+  },
+
+  // Create booking
+  createBooking: async (authApi, bookingData) => {
+    const response = await authApi.post('/guides/bookings', bookingData);
+    return response.data;
+  },
+
+  // Get my bookings as traveler
+  getMyBookingsAsTraveler: async (authApi, status) => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    
+    const response = await authApi.get(`/guides/bookings/traveler?${params.toString()}`);
+    return response.data;
+  },
+
+  // Get my bookings as guide
+  getMyBookingsAsGuide: async (authApi, status) => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    
+    const response = await authApi.get(`/guides/bookings/guide?${params.toString()}`);
+    return response.data;
+  },
+
+  // Confirm booking
+  confirmBooking: async (authApi, bookingId) => {
+    const response = await authApi.patch(`/guides/bookings/${bookingId}/confirm`);
+    return response.data;
+  },
+
+  // Cancel booking
+  cancelBooking: async (authApi, bookingId, reason) => {
+    const response = await authApi.patch(`/guides/bookings/${bookingId}/cancel`, { reason });
+    return response.data;
+  },
+
+  // Complete booking
+  completeBooking: async (authApi, bookingId) => {
+    const response = await authApi.patch(`/guides/bookings/${bookingId}/complete`);
+    return response.data;
+  },
+
+  // Create review
+  createReview: async (authApi, guideId, reviewData) => {
+    const response = await authApi.post(`/guides/${guideId}/reviews`, reviewData);
+    return response.data;
+  },
+
+  // Get guide reviews
+  getGuideReviews: async (authApi, guideId, page = 1, limit = 10) => {
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('limit', limit);
+    
+    const response = await authApi.get(`/guides/${guideId}/reviews?${params.toString()}`);
+    return response.data;
+  },
+};
+
 export default api;
+
 
 

@@ -4,6 +4,7 @@ import {
   Bed,
   Bell,
   BookOpen,
+  Bot,
   Calendar,
   CalendarDays,
   Camera,
@@ -29,7 +30,6 @@ import {
   User,
   Users,
   UtensilsCrossed,
-  Bot,
   X} from 'lucide-react';
 import  { useEffect, useRef,useState } from 'react';
 import toast from 'react-hot-toast';
@@ -202,6 +202,7 @@ function NavBar() {
     },
     { name: 'Traveler Posts', path: '/user-posts', icon: Camera },
     { name: 'Activities', path: '/activities', icon: Calendar },
+    { name: 'Local Guides', path: '/guides', icon: Compass },
 
   ];
 
