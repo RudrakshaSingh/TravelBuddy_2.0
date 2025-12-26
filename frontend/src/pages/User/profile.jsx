@@ -716,6 +716,69 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
+                {/* Local Guide Section */}
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full -mr-12 -mt-12 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-5 rounded-full -ml-8 -mb-8 pointer-events-none"></div>
+                    
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+                        <div>
+                            <h3 className="flex items-center gap-2 font-semibold text-lg mb-2">
+                                <MapPin size={20} />
+                                Local Guide
+                            </h3>
+                            <p className="text-indigo-200 text-sm max-w-md">
+                                {profile?.isLocalGuide 
+                                    ? "You're a local guide! Manage bookings and share your expertise with travelers."
+                                    : "Share your local knowledge and earn by guiding travelers around your city."
+                                }
+                            </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            {profile?.isLocalGuide ? (
+                                <>
+                                    <button 
+                                        onClick={() => navigate('/guide-dashboard')}
+                                        className="px-5 py-2.5 bg-white text-indigo-700 text-sm font-semibold rounded-lg hover:bg-indigo-50 transition-colors"
+                                    >
+                                        Dashboard
+                                    </button>
+                                    <button 
+                                        onClick={() => navigate('/my-guide-bookings')}
+                                        className="px-5 py-2.5 bg-indigo-500/30 text-white text-sm font-semibold rounded-lg hover:bg-indigo-500/40 transition-colors border border-indigo-400/30"
+                                    >
+                                        My Bookings
+                                    </button>
+                                </>
+                            ) : (
+                                <button 
+                                    onClick={() => navigate('/guide-setup')}
+                                    className="px-6 py-2.5 bg-white text-indigo-700 text-sm font-semibold rounded-lg hover:bg-indigo-50 transition-colors flex items-center gap-2"
+                                >
+                                    <Sparkles size={16} />
+                                    Become a Guide
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {profile?.isLocalGuide && (
+                        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-indigo-400/20 relative z-10">
+                            <div className="flex items-center gap-2 bg-indigo-500/20 px-3 py-1.5 rounded-full">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span className="text-xs font-medium">Active Guide</span>
+                            </div>
+                            <button 
+                                onClick={() => navigate('/guides')}
+                                className="text-xs text-indigo-200 hover:text-white transition-colors"
+                            >
+                                Browse Other Guides →
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 {/* Future Destinations */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                     <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">

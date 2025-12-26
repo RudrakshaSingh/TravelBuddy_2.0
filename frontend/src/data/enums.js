@@ -78,3 +78,19 @@ export const INTERESTS = [
   "Skiing/Snowboarding", "Solo Travel", "Sports", "Volunteering",
   "Wellness & Spa", "Wildlife", "Yoga"
 ];
+
+export const GUIDE_SPECIALTIES = [
+  "Food Walks",
+  "Culture Tours",
+  "Hidden Spots",
+  "Nightlife",
+  "Historical Tours",
+  "Nature & Wildlife",
+  "Photography Tours",
+  "Shopping Tours",
+  "Adventure Activities",
+  "Religious & Spiritual",
+  "Art & Museums",
+  "Local Experiences",
+];
+

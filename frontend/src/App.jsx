@@ -16,17 +16,22 @@ import ActivityPaymentStatus from "./pages/Activity/ActivityPaymentStatus";
 import BuySubscription from "./pages/Activity/buySubscription";
 import CreateActivity from "./pages/Activity/createActivity";
 import ActivityNearMe from "./pages/Activity/getNearByActivity";
+import JoinActivityGroup from "./pages/Activity/JoinActivityGroup";
 import JoinedActivities from "./pages/Activity/JoinedActivities";
 import ManageJoinedActivity from "./pages/Activity/ManageJoinedActivity";
-import JoinActivityGroup from "./pages/Activity/JoinActivityGroup";
 import MyCreatedActivities from "./pages/Activity/MyCreatedActivites";
 import ManageActivity from "./pages/Activity/UpdateActivity";
 import AiBuddyHomePage from "./pages/AiFeatures/AiBuddyHomePage";
-import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
-import AiPackagePlanner from "./pages/AiFeatures/AiPackagePlanner";
-import AiWeatherPlanner from "./pages/AiFeatures/AiWeatherPlanner";
 import AiLocalGuide from "./pages/AiFeatures/AiLocalGuide";
+import AiPackagePlanner from "./pages/AiFeatures/AiPackagePlanner";
+import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
+import AiWeatherPlanner from "./pages/AiFeatures/AiWeatherPlanner";
 import ChatPage from "./pages/Chat/ChatPage";
+import BrowseGuides from "./pages/Guide/BrowseGuides";
+import GuideDashboard from "./pages/Guide/GuideDashboard";
+import GuideDetail from "./pages/Guide/GuideDetail";
+import GuideProfileSetup from "./pages/Guide/GuideProfileSetup";
+import MyGuideBookings from "./pages/Guide/MyGuideBookings";
 import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
 import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
 import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
@@ -95,6 +100,13 @@ function App() {
         <Route path="manage-joined-activity/:id" element={<AuthGuard><ManageJoinedActivity /></AuthGuard>} />
         <Route path="join-activity-chat-group/:id" element={<AuthGuard><JoinActivityGroup /></AuthGuard>} />
 
+        {/* Guide Routes */}
+        <Route path="guides" element={<AuthGuard><BrowseGuides /></AuthGuard>} />
+        <Route path="guide/:id" element={<AuthGuard><GuideDetail /></AuthGuard>} />
+        <Route path="guide-setup" element={<AuthGuard><GuideProfileSetup /></AuthGuard>} />
+        <Route path="guide-dashboard" element={<AuthGuard><GuideDashboard /></AuthGuard>} />
+        <Route path="my-guide-bookings" element={<AuthGuard><MyGuideBookings /></AuthGuard>} />
+
         {/* Ai Features Routes */}
         <Route path="ai-buddy" element={<AuthGuard><AiBuddyHomePage /></AuthGuard>} />
         <Route path="ai-trip-planner" element={<AuthGuard><AiTripPlanner /></AuthGuard>} />
@@ -125,3 +137,4 @@ function App() {
 }
 
 export default App;
+
