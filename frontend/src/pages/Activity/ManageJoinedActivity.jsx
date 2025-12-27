@@ -27,6 +27,7 @@ import toast from 'react-hot-toast';
 
 import { useGoogleMaps } from '../../context/GoogleMapsContext';
 import { getSingleActivity, leaveActivity } from '../../redux/slices/userActivitySlice';
+import JoinChatGroup from './JoinActivityGroup';
 
 const getEmbedUrl = (url) => {
   if (!url) return null;
@@ -55,6 +56,7 @@ function ManageJoinedActivity() {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [isLeaving, setIsLeaving] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [confirmChecks, setConfirmChecks] = useState({
     refundPolicy: false,
@@ -252,7 +254,7 @@ function ManageJoinedActivity() {
                     <p className="text-xs font-semibold text-amber-900 mb-1">Time</p>
                     <p className="text-sm font-medium text-slate-700">
                       {activity.startTime ? new Date(activity.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
-                       (activity.time || 'TBD')}
+                        (activity.time || 'TBD')}
                       {activity.endTime && ` - ${new Date(activity.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                     </p>
                   </div>
@@ -294,7 +296,7 @@ function ManageJoinedActivity() {
                     <p className="text-slate-600">Connect with other participants and the host securely.</p>
                   </div>
                   <button
-                    onClick={() => navigate(`/join-activity-chat-group/${activity._id}`)}
+                    onClick={() => setShowChatModal(true)}
                     className="px-8 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold rounded-xl shadow-lg shadow-orange-200 hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg whitespace-nowrap"
                   >
                     Open Group Chat
@@ -315,29 +317,29 @@ function ManageJoinedActivity() {
                 </p>
               </div>
               <div className="h-[350px] w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
-                 {isLoaded && activity.location?.coordinates ? (
-                     <GoogleMap
-                       mapContainerStyle={mapContainerStyle}
-                       center={{ lat: activity.location.coordinates[1], lng: activity.location.coordinates[0] }}
-                       zoom={15}
-                       options={{
-                         disableDefaultUI: true,
-                         zoomControl: true,
-                         streetViewControl: false,
-                         mapTypeControl: false,
-                         fullscreenControl: true,
-                       }}
-                     >
-                       <Marker position={{ lat: activity.location.coordinates[1], lng: activity.location.coordinates[0] }} />
-                     </GoogleMap>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <div className="text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-orange-500" />
-                        <p className="text-sm">Loading Map...</p>
-                      </div>
+                {isLoaded && activity.location?.coordinates ? (
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    center={{ lat: activity.location.coordinates[1], lng: activity.location.coordinates[0] }}
+                    zoom={15}
+                    options={{
+                      disableDefaultUI: true,
+                      zoomControl: true,
+                      streetViewControl: false,
+                      mapTypeControl: false,
+                      fullscreenControl: true,
+                    }}
+                  >
+                    <Marker position={{ lat: activity.location.coordinates[1], lng: activity.location.coordinates[0] }} />
+                  </GoogleMap>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-orange-500" />
+                      <p className="text-sm">Loading Map...</p>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -380,9 +382,9 @@ function ManageJoinedActivity() {
                 <p className="text-sm text-slate-500 font-semibold mb-2 uppercase tracking-wide">Status</p>
 
                 {activity.isCancelled ? (
-                   <div className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-bold">
+                  <div className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-bold">
                     <ShieldAlert className="w-5 h-5" /> Cancelled
-                   </div>
+                  </div>
                 ) : isCreator ? (
                   <div className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold">
                     <Star className="w-5 h-5" /> You're Hosting!
@@ -394,10 +396,10 @@ function ManageJoinedActivity() {
                 )}
 
                 {activity.cancellationReason && (
-                   <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-left">
-                     <p className="text-xs text-red-700 font-bold mb-1">Reason for cancellation:</p>
-                     <p className="text-sm text-slate-700">{activity.cancellationReason}</p>
-                   </div>
+                  <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-left">
+                    <p className="text-xs text-red-700 font-bold mb-1">Reason for cancellation:</p>
+                    <p className="text-sm text-slate-700">{activity.cancellationReason}</p>
+                  </div>
                 )}
               </div>
 
@@ -407,7 +409,7 @@ function ManageJoinedActivity() {
                   <span className="font-bold text-slate-900"> Confirmed</span>
                 </div>
                 {activity.price > 0 && (
-                   <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
                     <span className="text-sm text-slate-600 font-medium">Price Paid</span>
                     <span className="font-bold text-orange-700">₹{activity.price}</span>
                   </div>
@@ -427,7 +429,7 @@ function ManageJoinedActivity() {
               </div>
 
               {!activity.isCancelled && !isCreator && (
-                 <button
+                <button
                   onClick={handleLeaveClick}
                   disabled={isLeaving}
                   className="w-full py-4 bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 hover:border-red-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
@@ -440,12 +442,12 @@ function ManageJoinedActivity() {
                   {isLeaving ? 'Leaving...' : 'Leave Activity'}
                 </button>
               )}
-               {!activity.isCancelled && isCreator && (
-                 <button
+              {!activity.isCancelled && isCreator && (
+                <button
                   onClick={() => navigate(`/manage-activity/${activity._id}`)}
                   className="w-full py-4 bg-purple-50 text-purple-600 border-2 border-purple-100 hover:bg-purple-100 hover:border-purple-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
-                    <Star className="w-5 h-5" /> Manage your Activity
+                  <Star className="w-5 h-5" /> Manage your Activity
                 </button>
               )}
 
@@ -482,9 +484,9 @@ function ManageJoinedActivity() {
                 <div className="space-y-3">
                   <button
                     onClick={() => {
-                       const phone = creator.mobile;
-                       if(phone) window.open(`https://wa.me/${phone}`, "_blank");
-                       else toast.error("Host contact not available");
+                      const phone = creator.mobile;
+                      if (phone) window.open(`https://wa.me/${phone}`, "_blank");
+                      else toast.error("Host contact not available");
                     }}
                     disabled={!creator.mobile}
                     className="w-full flex items-center justify-center gap-2 py-3 bg-green-50 text-green-700 hover:bg-green-100 rounded-xl font-semibold transition-all border border-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -494,7 +496,7 @@ function ManageJoinedActivity() {
                   <button
                     onClick={() => {
                       const phone = creator.mobile;
-                      if(phone) window.location.href=`tel:${phone}`;
+                      if (phone) window.location.href = `tel:${phone}`;
                       else toast.error("Host contact not available");
                     }}
                     disabled={!creator.mobile}
@@ -527,78 +529,78 @@ function ManageJoinedActivity() {
                 <div className="w-full mb-4 p-4 bg-amber-50 border border-amber-100 rounded-xl text-left space-y-1">
                   <h4 className="font-bold text-amber-800 text-sm mb-2">Refund Breakdown</h4>
                   <div className="flex justify-between text-xs text-amber-700">
-                     <span>Price Paid:</span>
-                     <span>₹{activity.price}</span>
+                    <span>Price Paid:</span>
+                    <span>₹{activity.price}</span>
                   </div>
                   <div className="flex justify-between text-xs text-amber-700">
-                     <span>Deduction (30%):</span>
-                     <span>- ₹{Math.round(activity.price * 0.3)}</span>
+                    <span>Deduction (30%):</span>
+                    <span>- ₹{Math.round(activity.price * 0.3)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-amber-900 border-t border-amber-200 pt-1 mt-1">
-                     <span>Refund Amount:</span>
-                     <span>₹{Math.round(activity.price * 0.7)}</span>
+                    <span>Refund Amount:</span>
+                    <span>₹{Math.round(activity.price * 0.7)}</span>
                   </div>
                 </div>
               )}
 
 
               <div className="w-full space-y-3 text-left bg-slate-50 p-4 rounded-xl border border-slate-100">
-                 {/* Checkbox 1: Action Confirmation */}
-                 <label className="flex items-start gap-3 cursor-pointer group">
+                {/* Checkbox 1: Action Confirmation */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.confirmAction}
+                      onChange={(e) => setConfirmChecks(prev => ({ ...prev, confirmAction: e.target.checked }))}
+                      className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white transition-all checked:border-red-500 checked:bg-red-500 hover:border-red-400"
+                    />
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                      <CheckCircle2 size={12} strokeWidth={4} />
+                    </div>
+                  </div>
+                  <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900">
+                    I confirm that I want to cancel my participation in this activity.
+                  </span>
+                </label>
+
+                {/* Checkbox 2: Irreversible */}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.irreversible}
+                      onChange={(e) => setConfirmChecks(prev => ({ ...prev, irreversible: e.target.checked }))}
+                      className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white transition-all checked:border-red-500 checked:bg-red-500 hover:border-red-400"
+                    />
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                      <CheckCircle2 size={12} strokeWidth={4} />
+                    </div>
+                  </div>
+                  <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900">
+                    I understand this action is irreversible and I may lose my spot.
+                  </span>
+                </label>
+
+                {/* Checkbox 3: Refund Policy (Only if Paid) */}
+                {Number(activity.price) > 0 && (
+                  <label className="flex items-start gap-3 cursor-pointer group">
                     <div className="relative flex items-center">
                       <input
                         type="checkbox"
-                        checked={confirmChecks.confirmAction}
-                        onChange={(e) => setConfirmChecks(prev => ({...prev, confirmAction: e.target.checked}))}
+                        checked={confirmChecks.refundPolicy}
+                        onChange={(e) => setConfirmChecks(prev => ({ ...prev, refundPolicy: e.target.checked }))}
                         className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white transition-all checked:border-red-500 checked:bg-red-500 hover:border-red-400"
                       />
                       <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
                         <CheckCircle2 size={12} strokeWidth={4} />
                       </div>
                     </div>
-                    <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900">
-                      I confirm that I want to cancel my participation in this activity.
+                    <span className="text-sm text-amber-800 font-medium group-hover:text-amber-900">
+                      I accept the <b>30% deduction refund policy</b>. <br />
+                      You will receive <b>₹{Math.round((activity.price || 0) * 0.7)}</b> (70% of ₹{activity.price}) back in 7-10 days.
                     </span>
-                 </label>
-
-                 {/* Checkbox 2: Irreversible */}
-                 <label className="flex items-start gap-3 cursor-pointer group">
-                    <div className="relative flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={confirmChecks.irreversible}
-                        onChange={(e) => setConfirmChecks(prev => ({...prev, irreversible: e.target.checked}))}
-                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white transition-all checked:border-red-500 checked:bg-red-500 hover:border-red-400"
-                      />
-                      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                        <CheckCircle2 size={12} strokeWidth={4} />
-                      </div>
-                    </div>
-                    <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900">
-                      I understand this action is irreversible and I may lose my spot.
-                    </span>
-                 </label>
-
-                 {/* Checkbox 3: Refund Policy (Only if Paid) */}
-                 {Number(activity.price) > 0 && (
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <div className="relative flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={confirmChecks.refundPolicy}
-                          onChange={(e) => setConfirmChecks(prev => ({...prev, refundPolicy: e.target.checked}))}
-                          className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 bg-white transition-all checked:border-red-500 checked:bg-red-500 hover:border-red-400"
-                        />
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                          <CheckCircle2 size={12} strokeWidth={4} />
-                        </div>
-                      </div>
-                      <span className="text-sm text-amber-800 font-medium group-hover:text-amber-900">
-                        I accept the <b>30% deduction refund policy</b>. <br/>
-                        You will receive <b>₹{Math.round((activity.price || 0) * 0.7)}</b> (70% of ₹{activity.price}) back in 7-10 days.
-                      </span>
-                    </label>
-                 )}
+                  </label>
+                )}
               </div>
             </div>
 
@@ -624,12 +626,24 @@ function ManageJoinedActivity() {
       {/* Redirect Overlay */}
       {isRedirecting && (
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white/60 backdrop-blur-md animate-fade-in text-slate-900">
-           <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-4" />
-           <h3 className="text-2xl font-bold">Left Activity</h3>
-           <p className="text-slate-600 mt-2 font-medium">Redirecting to activity list...</p>
+          <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-4" />
+          <h3 className="text-2xl font-bold">Left Activity</h3>
+          <p className="text-slate-600 mt-2 font-medium">Redirecting to activity list...</p>
         </div>
       )}
-    </div>
+
+
+      {/* Chat Group Modal */}
+      {
+        showChatModal && (
+          <JoinChatGroup
+            isOpen={showChatModal}
+            onClose={() => setShowChatModal(false)}
+            activityId={id}
+          />
+        )
+      }
+    </div >
   );
 }
 
