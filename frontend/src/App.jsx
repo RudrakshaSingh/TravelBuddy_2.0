@@ -1,4 +1,4 @@
-import { Navigate,Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import AuthGuard from "./components/AuthGuard";
 import EmergencyServices from "./components/EmergencyServices";
@@ -27,6 +27,7 @@ import AiPackagePlanner from "./pages/AiFeatures/AiPackagePlanner";
 import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
 import AiWeatherPlanner from "./pages/AiFeatures/AiWeatherPlanner";
 import ChatPage from "./pages/Chat/ChatPage";
+import GroupChat from "./pages/Chat/GroupChat";
 import BrowseGuides from "./pages/Guide/BrowseGuides";
 import GuideBookingPaymentStatus from "./pages/Guide/GuideBookingPaymentStatus";
 import GuideDashboard from "./pages/Guide/GuideDashboard";
@@ -55,11 +56,12 @@ import UploadArticle from "./pages/UserPosts/UploadArticle";
 import UploadPost from "./pages/UserPosts/UploadPost";
 import UserPosts from "./pages/UserPosts/UserPosts";
 
+
 function App() {
   return (
     <Routes >
-     <Route path="/" element={<Layout />} >
-       <Route index element={
+      <Route path="/" element={<Layout />} >
+        <Route index element={
           <AuthGuard>
             <HomePage />
           </AuthGuard>
@@ -99,7 +101,8 @@ function App() {
         <Route path="manage-activity/:id" element={<AuthGuard><ManageActivity /></AuthGuard>} />
         <Route path="manage-activity/:id" element={<AuthGuard><ManageActivity /></AuthGuard>} />
         <Route path="manage-joined-activity/:id" element={<AuthGuard><ManageJoinedActivity /></AuthGuard>} />
-        <Route path="join-activity-chat-group/:id" element={<AuthGuard><JoinActivityGroup /></AuthGuard>} />
+        {/* Route removed: JoinActivityGroup is now a modal */}
+        <Route path="activity-chat/:activityId" element={<AuthGuard><GroupChat /></AuthGuard>} />
 
         {/* Guide Routes */}
         <Route path="guides" element={<AuthGuard><BrowseGuides /></AuthGuard>} />

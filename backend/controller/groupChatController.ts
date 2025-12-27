@@ -1,4 +1,4 @@
-import {Request, Response } from "express";
+import { Request, Response } from "express";
 import mongoose from "mongoose";
 
 import { Activity } from "../models/activityModel";
@@ -10,9 +10,9 @@ import asyncHandler from "../utils/asyncHandler";
 
 
 export const getGroupChatByActivity = asyncHandler(
-    async(req: Request & { user: any }, res: Response) => {
-        
-        if(!req.user) {
+    async (req: Request & { user: any }, res: Response) => {
+
+        if (!req.user) {
             throw new ApiError(
                 401,
                 "Unauthorized"
@@ -20,46 +20,71 @@ export const getGroupChatByActivity = asyncHandler(
         }
 
         const userId = req.user._id;
-        const {id} = req.params;
+        const { activityId } = req.params;
 
-        if(!mongoose.Types.ObjectId.isValid(id)) {
-            throw new ApiError (
+        if (!mongoose.Types.ObjectId.isValid(activityId)) {
+            throw new ApiError(
                 400,
                 "Invalid activity id"
             );
         }
 
-        const activity = await Activity.findById(id);
+        const activity = await Activity.findById(activityId);
 
         //check if the activity exists
-        if(!activity) {
-            throw new ApiError (
+        if (!activity) {
+            throw new ApiError(
                 404,
                 "Activity does not exist"
-            );  
+            );
         }
 
         //Check if the user has joined the activity.
-        if(!activity.participants.some(
-        (participantId) => participantId.toString() === userId.toString())) {
+        if (!activity.participants.some(
+            (participantId) => participantId.toString() === userId.toString())) {
             throw new ApiError(403, "You are not a participant of this activity");
 
         }
 
-        const groupChat = await ChatGroup.findOne({ activityId: id })
-        .populate("participants", "name profileImage")
-        .populate("createdBy", "name profileImage");
+        let groupChat = await ChatGroup.findOne({ activityId })
+            .populate("participants", "name profileImage")
+            .populate("createdBy", "name profileImage");
 
-        if(!groupChat) {
-            throw new ApiError (
-                404, 
-                "Not found"
-            );
+        if (!groupChat) {
+            // Self-healing: Create the group chat if it doesn't exist
+            groupChat = await ChatGroup.create({
+                activityId: activity._id,
+                name: activity.title,
+                createdBy: activity.createdBy,
+                participants: activity.participants as any,
+            });
+
+            // Update activity to reflect group existence
+            await Activity.findByIdAndUpdate(activityId, { groupExists: true });
+
+            // Re-fetch to Populate fields for consistent response
+            groupChat = await ChatGroup.findById(groupChat._id)
+                .populate("participants", "name profileImage")
+                .populate("createdBy", "name profileImage");
+        } else {
+            // SYNC FIX: Ensure ChatGroup participants match Activity participants
+            // The Activity is the source of truth. If a user is in Activity but not Chat, fix it.
+            const activityParticipantIds = activity.participants.map(p => p.toString());
+            const chatParticipantIds = groupChat.participants.map((p: any) => p._id.toString());
+
+            const isSynced = activityParticipantIds.length === chatParticipantIds.length &&
+                activityParticipantIds.every(id => chatParticipantIds.includes(id));
+
+            if (!isSynced) {
+                console.log(`Syncing participants for chat ${groupChat._id}`);
+                groupChat.participants = activity.participants as any;
+                await groupChat.save();
+            }
         }
 
         return res.status(200).json(
             new ApiResponse(
-                200, 
+                200,
                 groupChat,
                 "groupChat fetched successfully"
             )
@@ -68,9 +93,9 @@ export const getGroupChatByActivity = asyncHandler(
 );
 
 export const sendGroupChatMessage = asyncHandler(
-    async(req: Request & { user: any }, res: Response) => {
-        
-        if(!req.user) {
+    async (req: Request & { user: any }, res: Response) => {
+
+        if (!req.user) {
             throw new ApiError(
                 401,
                 "Unauthorized"
@@ -79,16 +104,16 @@ export const sendGroupChatMessage = asyncHandler(
 
         const userId = req.user._id;
 
-        const {chatId} = req.params;
+        const { chatId } = req.params;
 
         const { message } = req.body;
 
         if (!message || typeof message !== "string" || !message.trim()) {
-           throw new ApiError(400, "Message content is required");
+            throw new ApiError(400, "Message content is required");
         }
 
-        if(!mongoose.Types.ObjectId.isValid(chatId)) {
-            throw new ApiError (
+        if (!mongoose.Types.ObjectId.isValid(chatId)) {
+            throw new ApiError(
                 400,
                 "Invalid group id"
             );
@@ -97,16 +122,16 @@ export const sendGroupChatMessage = asyncHandler(
         const chatGroup = await ChatGroup.findById(chatId);
 
         //check if the activity exists
-        if(!chatGroup) {
-            throw new ApiError (
+        if (!chatGroup) {
+            throw new ApiError(
                 404,
                 "chat group does not exist"
-            );  
+            );
         }
 
         //Check if the user has joined the activity.
-        if(!chatGroup.participants.some(
-        (participantId) => participantId.toString() === userId.toString())) {
+        if (!chatGroup.participants.some(
+            (participantId) => participantId.toString() === userId.toString())) {
             throw new ApiError(403, "You are not a participant of this chat group");
 
         }
@@ -125,7 +150,7 @@ export const sendGroupChatMessage = asyncHandler(
 
         return res.status(201).json(
             new ApiResponse(
-                201, 
+                201,
                 groupMessage,
                 "Group message created successfully"
             )
@@ -134,44 +159,44 @@ export const sendGroupChatMessage = asyncHandler(
 );
 
 export const getGroupChatMessages = asyncHandler(
-  async (req: Request & { user: any }, res: Response) => {
+    async (req: Request & { user: any }, res: Response) => {
 
-    if (!req.user) {
-      throw new ApiError(401, "Unauthorized");
+        if (!req.user) {
+            throw new ApiError(401, "Unauthorized");
+        }
+
+        const userId = req.user._id;
+        const { chatId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(chatId)) {
+            throw new ApiError(400, "Invalid group id");
+        }
+
+        const chatGroup = await ChatGroup.findById(chatId);
+
+        if (!chatGroup) {
+            throw new ApiError(404, "Chat group does not exist");
+        }
+
+        // Authorization: user must be a participant
+        if (
+            !chatGroup.participants.some(
+                (participantId) => participantId.toString() === userId.toString()
+            )
+        ) {
+            throw new ApiError(403, "You are not a participant of this chat group");
+        }
+
+        const messages = await GroupMessage.find({
+            chatGroupId: chatId,
+        }).sort({ createdAt: 1 }); // oldest → newest
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                messages,
+                "Group chat messages fetched successfully"
+            )
+        );
     }
-
-    const userId = req.user._id;
-    const { chatId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      throw new ApiError(400, "Invalid group id");
-    }
-
-    const chatGroup = await ChatGroup.findById(chatId);
-
-    if (!chatGroup) {
-      throw new ApiError(404, "Chat group does not exist");
-    }
-
-    // Authorization: user must be a participant
-    if (
-      !chatGroup.participants.some(
-        (participantId) => participantId.toString() === userId.toString()
-      )
-    ) {
-      throw new ApiError(403, "You are not a participant of this chat group");
-    }
-
-    const messages = await GroupMessage.find({
-      chatGroupId: chatId,
-    }).sort({ createdAt: 1 }); // oldest → newest
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        messages,
-        "Group chat messages fetched successfully"
-      )
-    );
-  }
 );

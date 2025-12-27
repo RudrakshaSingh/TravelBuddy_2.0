@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import {Request, Response } from "express";
+import { Request, Response } from "express";
 import mongoose from "mongoose";
 
 import uploadOnCloudinary from "../middlewares/cloudinary";
@@ -133,24 +133,26 @@ export const createActivity = asyncHandler(
 
       // create activty chat group
       await ChatGroup.findOneAndUpdate(
-        {activityId: activity._id},
+        { activityId: activity._id },
         {
-        activityId: activity._id,
-        name: activity.title,
-        createdBy: userId,
-        participants: [userId],
+          activityId: activity._id,
+          name: activity.title,
+          createdBy: userId,
+          participants: [userId],
         },
-        {upsert: true, new: true},
+        { upsert: true, new: true },
       );
 
+      // Ensure activity knows group exists
+      await Activity.findByIdAndUpdate(activity._id, { groupExists: true });
       // 1. Notify Creator (Self-Confirmation)
       await sendNotification({
-          recipient: userId,
-          sender: userId,
-          type: "ACTIVITY_CREATED_SELF",
-          message: `You successfully created a new activity: ${activity.title}`,
-          link: `/activity/${activity._id}`,
-          relatedId: activity._id,
+        recipient: userId,
+        sender: userId,
+        type: "ACTIVITY_CREATED_SELF",
+        message: `You successfully created a new activity: ${activity.title}`,
+        link: `/activity/${activity._id}`,
+        relatedId: activity._id,
       });
 
       // 2. Notify Friends
@@ -199,20 +201,20 @@ export const getActivities = asyncHandler(
         date: { $gte: now },
         isCancelled: { $ne: true }  // Exclude cancelled activities
       })
-      .sort({date: 1, startTime: 1})
+      .sort({ date: 1, startTime: 1 })
       .populate(
         "createdBy", "name email mobile profileImage"
       ).lean();
 
     return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            activities,
-            "Activities fetched successfully"
-          )
-        );
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          activities,
+          "Activities fetched successfully"
+        )
+      );
   }
 );
 
@@ -347,10 +349,10 @@ export const getNearbyActivities = asyncHandler(
         const dLat = (actLat - userLat) * Math.PI / 180;
         const dLng = (actLng - userLng) * Math.PI / 180;
         const a =
-          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos(userLat * Math.PI / 180) * Math.cos(actLat * Math.PI / 180) *
-          Math.sin(dLng/2) * Math.sin(dLng/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distanceKm = (R * c).toFixed(1);
 
         return { ...activity, distanceKm };
@@ -380,86 +382,86 @@ export const getNearbyActivities = asyncHandler(
 export const getActivityById = asyncHandler(
   async (req: Request, res: Response) => {
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id)
+    const activity = await Activity.findById(id)
       .populate("createdBy", "name email mobile profileImage")
       .populate("participants", "name email mobile profileImage")
       .lean();
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            activity,
-            "Activity fetched successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        activity,
+        "Activity fetched successfully"
+      )
+    );
   }
 );
 
 export const getParticipants = asyncHandler(
   async (req: Request, res: Response) => {
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id)
-    .select("participants")
-    .populate("participants", "name profileImage")
-    .lean();
+    const activity = await Activity.findById(id)
+      .select("participants")
+      .populate("participants", "name profileImage")
+      .lean();
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            activity.participants,
-            "participants fetched successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        activity.participants,
+        "participants fetched successfully"
+      )
+    );
   }
 );
 
 export const updateActivity = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const updateActivityZodSchema = activityZodSchema.partial();
@@ -467,90 +469,90 @@ export const updateActivity = asyncHandler(
 
     const userId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
-    if(activity.createdBy.toString() !== userId.toString()) {
+    if (activity.createdBy.toString() !== userId.toString()) {
       throw new ApiError(
-          403,
-          "You are not allowed to update this activity"
-       );
+        403,
+        "You are not allowed to update this activity"
+      );
     }
 
     //update the activity
     const updatedActivity = await Activity.findByIdAndUpdate(
-        id,
-        validatedData,
-        {new: true, runValidators: true}
+      id,
+      validatedData,
+      { new: true, runValidators: true }
     )
-    .populate("createdBy", "name email mobile profileImage")
-    .lean();
+      .populate("createdBy", "name email mobile profileImage")
+      .lean();
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            updatedActivity,
-            "Activity updated successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        updatedActivity,
+        "Activity updated successfully"
+      )
+    );
   }
 );
 
 export const joinActivity = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const userId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
-    if(activity.price > 0)  {
-      const payment = await ActivityPayment.findOne({userId, activityId: id, status: "SUCCESS"});
+    if (activity.price > 0) {
+      const payment = await ActivityPayment.findOne({ userId, activityId: id, status: "SUCCESS" });
 
-      if(!payment) {
+      if (!payment) {
         throw new ApiError(
           402,
           "Payment required to join this activity"
@@ -558,13 +560,13 @@ export const joinActivity = asyncHandler(
       }
     }
 
-    if(activity.participants.some(
+    if (activity.participants.some(
       (participantId) => participantId.toString() === userId.toString()
     )) {
       throw new ApiError(
-          409,
-          "conflict"
-       );
+        409,
+        "conflict"
+      );
     }
 
     //check if space is available, and refund the money if user has paid but space is not available.
@@ -574,141 +576,141 @@ export const joinActivity = asyncHandler(
 
     //update the activity
     const updatedActivity = await Activity.findByIdAndUpdate(
-        id,
-        { $addToSet: { participants: userId } },
-        {new: true, runValidators: true}
+      id,
+      { $addToSet: { participants: userId } },
+      { new: true, runValidators: true }
     )
-    .populate("createdBy", "name email mobile profileImage")
-    .lean();
+      .populate("createdBy", "name email mobile profileImage")
+      .lean();
 
     // Also update the user's JoinActivity array
     await User.findByIdAndUpdate(
-        userId,
-        { $addToSet: { JoinActivity: id } }
+      userId,
+      { $addToSet: { JoinActivity: id } }
     );
 
     //Add user to the chat group
     await ChatGroup.findOneAndUpdate(
       { activityId: id },
-      { $addToSet: {participants: userId} }
+      { $addToSet: { participants: userId } }
     );
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            updatedActivity,
-            "Activity joined successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        updatedActivity,
+        "Activity joined successfully"
+      )
+    );
   }
 );
 
 export const leaveActivity = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const userId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
-    if(!activity.participants.some(
+    if (!activity.participants.some(
       (participantId) => participantId.toString() === userId.toString()
     )) {
       throw new ApiError(
-          409,
-          "conflict"
-       );
+        409,
+        "conflict"
+      );
     }
 
     //update the activity
     const updatedActivity = await Activity.findByIdAndUpdate(
-        id,
-        { $pull: { participants: userId } },
-        {new: true, runValidators: true}
+      id,
+      { $pull: { participants: userId } },
+      { new: true, runValidators: true }
     )
-    .populate("createdBy", "name email mobile profileImage")
-    .lean();
+      .populate("createdBy", "name email mobile profileImage")
+      .lean();
 
     await ChatGroup.findOneAndUpdate(
-        {activityId: id},
-        {
-          $pull: { participants: userId }
-        }
+      { activityId: id },
+      {
+        $pull: { participants: userId }
+      }
     );
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            updatedActivity,
-            "Activity left successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        updatedActivity,
+        "Activity left successfully"
+      )
+    );
   }
 );
 
 export const deleteActivity = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const userId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
-    if(activity.createdBy.toString() !== userId.toString()) {
+    if (activity.createdBy.toString() !== userId.toString()) {
       throw new ApiError(
-          403,
-          "Not the creater"
-       );
+        403,
+        "Not the creater"
+      );
     }
 
 
@@ -728,7 +730,7 @@ export const deleteActivity = asyncHandler(
 
     // Notify Participants
     for (const participantId of participantsToNotify) {
-       if (participantId.toString() !== userId.toString()) {
+      if (participantId.toString() !== userId.toString()) {
         await sendNotification({
           recipient: participantId,
           sender: userId,
@@ -745,53 +747,53 @@ export const deleteActivity = asyncHandler(
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            null,
-            "Activity deleted successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        null,
+        "Activity deleted successfully"
+      )
+    );
   }
 );
 
 export const inviteUsers = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const creatorId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
     // check if user is the creator of the activity.
-    if(activity.createdBy.toString() !== creatorId.toString()) {
-        throw new ApiError(
-            403,
-            "Not allowed to invite users"
-        );
+    if (activity.createdBy.toString() !== creatorId.toString()) {
+      throw new ApiError(
+        403,
+        "Not allowed to invite users"
+      );
     }
 
     const userIds = req.body.userIds;
@@ -800,41 +802,41 @@ export const inviteUsers = asyncHandler(
       throw new ApiError(400, "userIds must be a non-empty array");
     }
 
-    for(const userId of userIds) {
-        // if the user Id is invlid
-        if(!mongoose.Types.ObjectId.isValid(userId)) {
-          throw new ApiError(
-            400,
-            "Invalid user id"
-          );
-        }
-        //Check if the user Exists or not
-        const userExists = await User.exists({_id: userId});
-        if(!userExists) {
-            throw new ApiError (
-              404,
-              "user no found"
-            );
-        }
+    for (const userId of userIds) {
+      // if the user Id is invlid
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new ApiError(
+          400,
+          "Invalid user id"
+        );
+      }
+      //Check if the user Exists or not
+      const userExists = await User.exists({ _id: userId });
+      if (!userExists) {
+        throw new ApiError(
+          404,
+          "user no found"
+        );
+      }
 
-        // if the user is already a participant in the activity.
-        if(activity.participants.some(
-          (pid) => pid.toString() === userId.toString()
-        )) {
-            throw new ApiError(
-              409,
-              "user already a participant"
-          );
-        }
-        //If user is already invited
-        if(activity.invitedUsers.some(
-          (invite) => invite.userId.toString() === userId.toString()
-        )) {
-            throw new ApiError(
-              409,
-              "User already invited"
-          );
-        }
+      // if the user is already a participant in the activity.
+      if (activity.participants.some(
+        (pid) => pid.toString() === userId.toString()
+      )) {
+        throw new ApiError(
+          409,
+          "user already a participant"
+        );
+      }
+      //If user is already invited
+      if (activity.invitedUsers.some(
+        (invite) => invite.userId.toString() === userId.toString()
+      )) {
+        throw new ApiError(
+          409,
+          "User already invited"
+        );
+      }
 
     }
 
@@ -842,61 +844,61 @@ export const inviteUsers = asyncHandler(
       id,
       {
         $addToSet: {
-          invitedUsers: userIds.map((uid)=> ({
-              userId: uid,
-              status: "Pending"
+          invitedUsers: userIds.map((uid) => ({
+            userId: uid,
+            status: "Pending"
           }))
         }
       },
-      {new: true}
+      { new: true }
     );
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            null,
-            "Invite sent successfully"
-          )
-        );
+      new ApiResponse(
+        200,
+        null,
+        "Invite sent successfully"
+      )
+    );
   }
 );
 
 export const respondToInvite = asyncHandler(
   async (req: Request & { user?: any }, res: Response) => {
-    if(!req.user) {
-        throw new ApiError(
-          401,
-          "Unauthorized"
-       );
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Unauthorized"
+      );
     }
 
     const userId = req.user._id;
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     //Validate the objectId.
-    if(!mongoose.Types.ObjectId.isValid(id)) {
-       throw new ApiError(
-          400,
-          "Invalid activity id"
-       );
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(
+        400,
+        "Invalid activity id"
+      );
     }
 
 
     //Fetch activity
-    const activity =  await Activity.findById(id);
+    const activity = await Activity.findById(id);
 
     //Handle, if the activity not found.
-    if(!activity) {
+    if (!activity) {
       throw new ApiError(
-          404,
-          "Requested Activity doesn't exist"
-       );
+        404,
+        "Requested Activity doesn't exist"
+      );
     }
 
     const invite = activity.invitedUsers.find(
-        (invite) => invite.userId.toString() === userId.toString()
+      (invite) => invite.userId.toString() === userId.toString()
     );
 
     if (!invite) throw new ApiError(404, "Invite not found");
@@ -905,39 +907,39 @@ export const respondToInvite = asyncHandler(
       throw new ApiError(409, "Invite already responded");
     }
 
-    const {status} = req.body;
+    const { status } = req.body;
 
-    if(status == "Accepted") {
-        //Check if the activity is full
-        if (activity.participants.length >= activity.maxCapacity) {
-          throw new ApiError(409, "Activity is full");
+    if (status == "Accepted") {
+      //Check if the activity is full
+      if (activity.participants.length >= activity.maxCapacity) {
+        throw new ApiError(409, "Activity is full");
+      }
+
+      await Activity.findByIdAndUpdate(
+        { _id: id, "invitedUsers.userId": userId },
+        { $set: { "invitedUsers.$.status": "Accepted" } }
+      );
+      await Activity.findByIdAndUpdate(
+        id,
+        {
+          $addToSet: { participants: userId }
         }
-
-        await Activity.findByIdAndUpdate(
-          {_id: id, "invitedUsers.userId": userId},
-          {$set: {"invitedUsers.$.status": "Accepted"}}
-        );
-        await Activity.findByIdAndUpdate(
-          id,
-          {
-            $addToSet: {participants: userId}
-          }
-        )
+      )
     } else {
-        await Activity.findByIdAndUpdate(
-          {_id: id, "invitedUsers.userId": userId},
-          {$set: {"invitedUsers.$.status": "Rejected"}}
-        );
+      await Activity.findByIdAndUpdate(
+        { _id: id, "invitedUsers.userId": userId },
+        { $set: { "invitedUsers.$.status": "Rejected" } }
+      );
     }
 
     //Response
     return res.status(200).json(
-          new ApiResponse(
-            200,
-            status,
-            "updated invite status"
-          )
-        );
+      new ApiResponse(
+        200,
+        status,
+        "updated invite status"
+      )
+    );
   }
 );
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Create base axios instance
 const api = axios.create({
@@ -236,10 +236,10 @@ export const activityService = {
       // Append photos
       if (activityData.photos && activityData.photos.length > 0) {
         if (typeof activityData.photos[0] === 'string') {
-            // If already uploaded urls
-             activityData.photos.forEach((photo) => {
-               formData.append('photos', photo);
-             });
+          // If already uploaded urls
+          activityData.photos.forEach((photo) => {
+            formData.append('photos', photo);
+          });
         } else {
           // File objects
           activityData.photos.forEach((photo) => {
@@ -251,12 +251,12 @@ export const activityService = {
       // Append other fields
       Object.keys(activityData).forEach(key => {
         if (key !== 'photos') {
-           // Handle arrays like videos
-           if (Array.isArray(activityData[key])) {
-             activityData[key].forEach(val => formData.append(key, val));
-           } else {
-             formData.append(key, activityData[key]);
-           }
+          // Handle arrays like videos
+          if (Array.isArray(activityData[key])) {
+            activityData[key].forEach(val => formData.append(key, val));
+          } else {
+            formData.append(key, activityData[key]);
+          }
         }
       });
     }
@@ -704,6 +704,27 @@ export const guideService = {
   // Verify payment for guide booking
   verifyGuideBookingPayment: async (authApi, bookingId, orderId) => {
     const response = await authApi.post(`/guides/bookings/${bookingId}/verify-payment`, { orderId });
+    return response.data;
+  },
+};
+export const groupChatService = {
+  // Get group chat by activity ID
+  getGroupChatByActivity: async (authApi, activityId) => {
+    const response = await authApi.get(`/group-chats/activity/${activityId}`);
+    return response.data;
+  },
+
+  // Get messages for a group chat
+  getGroupChatMessages: async (authApi, chatId) => {
+    const response = await authApi.get(`/group-chats/${chatId}/messages`);
+    return response.data;
+  },
+
+  // Send a message to a group chat
+  sendGroupChatMessage: async (authApi, chatId, message) => {
+    const response = await authApi.post(`/group-chats/${chatId}/messages`, {
+      message,
+    });
     return response.data;
   },
 };
