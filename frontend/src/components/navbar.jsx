@@ -46,6 +46,9 @@ import NotificationDropdown from './notifications/NotificationDropdown';
 
 
 function NavBar() {
+  const { socket } = useSocketContext();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -73,6 +76,19 @@ function NavBar() {
     if (socket && isSignedIn) {
       socket.on("newNotification", (notification) => {
         dispatch(addNotification(notification));
+
+        // Play notification sound
+        try {
+          const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+          audio.volume = 0.5;
+          audio.play().catch(e => console.log("Audio play failed (user interaction required):", e));
+        } catch (error) {
+          console.log("Audio error", error);
+        }
+
+        // Don't show toast for self-actions as they usually have their own success feedback
+        if (notification.type === 'ACTIVITY_CREATED_SELF' || notification.type === 'ACTIVITY_CANCELLED_SELF') return;
+
         toast.custom((t) => (
           <div
             className={`${
@@ -118,12 +134,11 @@ function NavBar() {
   }, [socket, isSignedIn, dispatch, navigate]);
 
 
-  const navigate = useNavigate();
-  const location = useLocation();
+
   const { signOut } = useClerk();
 
 
-  const notificationCount = 3;
+
 
   // Derive user display values - prefer data from backend profile, fallback to Clerk
   const userImage = userProfile?.profileImage || user?.imageUrl;
@@ -131,7 +146,7 @@ function NavBar() {
   const userEmail = userProfile?.email || user?.primaryEmailAddress?.emailAddress || '';
 
 
-  const { socket } = useSocketContext();
+
   const [currentLocationName, setCurrentLocationName] = useState('Locating...');
 
 
@@ -275,7 +290,6 @@ function NavBar() {
     profile: [
       { name: 'My Profile', path: '/profile', icon: User },
       { name: 'Connections', path: '/connections', icon: Link },
-      { name: 'Notifications', path: '/notifications', icon: Bell, badge: notificationCount },
       ...(myGuideProfile
         ? [{ name: 'Guide Dashboard', path: '/guide-dashboard', icon: Compass }]
         : [{ name: 'Become a Guide', path: '/guide-setup', icon: Compass }]

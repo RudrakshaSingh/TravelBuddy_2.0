@@ -136,17 +136,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         )}
       </div>
 
-      <div className="p-3 bg-gray-900/95 border-t border-white/10 text-center">
-        <button
-          className="text-xs text-purple-400 hover:text-white transition-colors"
-          onClick={() => {
-            navigate('/settings/notifications');
-            onClose();
-          }}
-        >
-          View Settings
-        </button>
-      </div>
+
     </div>
   );
 };
