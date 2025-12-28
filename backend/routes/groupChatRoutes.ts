@@ -6,6 +6,7 @@ import {
   sendGroupChatMessage,
 } from "../controller/groupChatController";
 import { requireProfile } from "../middlewares/authMiddleware";
+import upload from "../middlewares/multerMiddleware";
 
 const router = Router();
 
@@ -16,7 +17,8 @@ router.use(requireProfile);
 router.get("/activity/:activityId", getGroupChatByActivity);
 
 // messages
-router.post("/:chatId/messages", sendGroupChatMessage);
+router.post("/:chatId/messages", upload.single("attachment"), sendGroupChatMessage);
 router.get("/:chatId/messages", getGroupChatMessages);
+
 
 export default router;

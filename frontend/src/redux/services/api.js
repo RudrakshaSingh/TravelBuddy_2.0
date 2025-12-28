@@ -741,12 +741,25 @@ export const groupChatService = {
   },
 
   // Send a message to a group chat
-  sendGroupChatMessage: async (authApi, chatId, message) => {
-    const response = await authApi.post(`/group-chats/${chatId}/messages`, {
-      message,
+  sendGroupChatMessage: async (authApi, chatId, data) => {
+    let payload = data;
+    let headers = {};
+
+    // If data is just a string, wrap it in JSON
+    if (typeof data === "string") {
+      payload = { message: data };
+    }
+    // If FormData, let axios handle headers (apart from Auth which is in authApi)
+    else if (data instanceof FormData) {
+      headers = { 'Content-Type': 'multipart/form-data' };
+    }
+
+    const response = await authApi.post(`/group-chats/${chatId}/messages`, payload, {
+      headers
     });
     return response.data;
   },
+
 };
 
 // Notification Service functions

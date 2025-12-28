@@ -8,9 +8,11 @@ export interface IGroupMessage {
 
     message: string;
 
-    type?: "TEXT" | "IMAGE" | "SYSTEM";
+    type?: "TEXT" | "IMAGE" | "SYSTEM" | "LOCATION" | "DOCUMENT" | "AUDIO";
 
-    createdAt?: Date; 
+    attachmentUrl?: string;
 
-    updatedAt?: Date 
+    createdAt?: Date;
+
+    updatedAt?: Date
 }
