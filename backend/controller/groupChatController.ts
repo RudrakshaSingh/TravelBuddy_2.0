@@ -92,8 +92,14 @@ export const getGroupChatByActivity = asyncHandler(
     }
 );
 
+import uploadOnCloudinary from "../middlewares/cloudinary";
+
 export const sendGroupChatMessage = asyncHandler(
-    async (req: Request & { user: any }, res: Response) => {
+    async (req: Request & { user: any; file?: any }, res: Response) => {
+
+        console.log("---- SEND GROUP CHAT MESSAGE ----");
+        console.log("req.body:", req.body);
+        console.log("req.file:", req.file);
 
         if (!req.user) {
             throw new ApiError(
@@ -106,10 +112,11 @@ export const sendGroupChatMessage = asyncHandler(
 
         const { chatId } = req.params;
 
-        const { message } = req.body;
+        const { message, type } = req.body;
 
-        if (!message || typeof message !== "string" || !message.trim()) {
-            throw new ApiError(400, "Message content is required");
+        // If no file and no attachmentUrl, message is required. If file or attachmentUrl, message is optional (caption).
+        if (!req.file && !req.body.attachmentUrl && (!message || typeof message !== "string" || !message.trim())) {
+            throw new ApiError(400, "Message content or attachment is required");
         }
 
         if (!mongoose.Types.ObjectId.isValid(chatId)) {
@@ -133,19 +140,46 @@ export const sendGroupChatMessage = asyncHandler(
         if (!chatGroup.participants.some(
             (participantId) => participantId.toString() === userId.toString())) {
             throw new ApiError(403, "You are not a participant of this chat group");
-
         }
 
-        const cleanMessage = message.trim();
+        let attachmentUrl = req.body.attachmentUrl || "";
+        let messageType = type || "TEXT";
+
+        if (req.file) {
+            const uploadedFile = await uploadOnCloudinary(req.file.path);
+            if (uploadedFile) {
+                attachmentUrl = uploadedFile.secure_url;
+                // Determine type based on file if not provided
+                if (!type) {
+                    if (req.file.mimetype.startsWith("image/")) {
+                        messageType = "IMAGE";
+                    } else if (req.file.mimetype.startsWith("audio/")) {
+                        messageType = "AUDIO";
+                    } else {
+                        messageType = "DOCUMENT";
+                    }
+                }
+            } else {
+                throw new ApiError(500, "Failed to upload attachment");
+            }
+        }
+
+        const cleanMessage = message ? message.trim() : "";
 
         const groupMessage = await GroupMessage.create({
             chatGroupId: chatId,
             senderId: userId,
             message: cleanMessage,
+            type: messageType,
+            attachmentUrl: attachmentUrl
         });
 
+        const lastMsgPreview = attachmentUrl
+            ? (messageType === "IMAGE" ? "📷 Image" : "📎 Attachment")
+            : cleanMessage;
+
         await ChatGroup.findByIdAndUpdate(chatId, {
-            lastMessage: cleanMessage,
+            lastMessage: lastMsgPreview,
         });
 
         return res.status(201).json(

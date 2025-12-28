@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import { AudioPlaybackProvider } from "./context/AudioPlaybackContext";
 import AuthGuard from "./components/AuthGuard";
 import EmergencyServices from "./components/EmergencyServices";
 import FoodNightlife from "./components/FoodNightlife";
@@ -102,7 +102,8 @@ function App() {
         <Route path="manage-activity/:id" element={<AuthGuard><ManageActivity /></AuthGuard>} />
         <Route path="manage-joined-activity/:id" element={<AuthGuard><ManageJoinedActivity /></AuthGuard>} />
         {/* Route removed: JoinActivityGroup is now a modal */}
-        <Route path="activity-chat/:activityId" element={<AuthGuard><GroupChat /></AuthGuard>} />
+        <Route path="activity-chat/:activityId" element={<AuthGuard><AudioPlaybackProvider><GroupChat /></AudioPlaybackProvider></AuthGuard>} />
+
 
         {/* Guide Routes */}
         <Route path="guides" element={<AuthGuard><BrowseGuides /></AuthGuard>} />

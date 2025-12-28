@@ -45,6 +45,10 @@ const allowedMimeTypes: string[] = [
   "image/png",
   "image/webp", // Support WebP
   "application/octet-stream", // Sometimes images come as this
+  "audio/webm",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
 ];
 
 // -----------------------------
@@ -55,11 +59,13 @@ const fileFilter = (
   file: any, // Multer v2 has no exported File type yet
   cb: FileFilterCallback
 ) => {
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  // Check if the uploaded file's mimetype starts with any of the allowed types
+  // This handles cases like "audio/webm;codecs=opus" matching "audio/webm"
+  if (allowedMimeTypes.some(type => file.mimetype.startsWith(type))) {
     return cb(null, true);
   }
 
-  return cb(new ApiError(400, "Invalid file type"));
+  return cb(new ApiError(400, `Invalid file type: ${file.mimetype}`));
 };
 
 // -----------------------------

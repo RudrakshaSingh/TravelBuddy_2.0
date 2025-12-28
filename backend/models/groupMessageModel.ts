@@ -19,15 +19,21 @@ const groupMessageSchema = new Schema<IGroupMessage>(
 
     message: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
 
     type: {
       type: String,
-      enum: ["TEXT", "IMAGE", "SYSTEM"],
+      enum: ["TEXT", "IMAGE", "SYSTEM", "LOCATION", "DOCUMENT", "AUDIO"],
       default: "TEXT",
     },
+
+    attachmentUrl: {
+      type: String,
+      default: "",
+    },
+
   },
   { timestamps: true }
 );
