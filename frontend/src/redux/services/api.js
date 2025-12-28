@@ -325,6 +325,20 @@ export const activityService = {
   cancelActivity: async (authApi, activityId, reason) => {
     const response = await authApi.post(`/activities/${activityId}/cancel`, { reason });
     return response.data;
+  },
+
+  // Get nearby activities
+  getNearbyActivities: async (authApi, { lat, lng, radius, search, page, limit }) => {
+    const params = new URLSearchParams();
+    if (lat) params.append('lat', lat);
+    if (lng) params.append('lng', lng);
+    if (radius) params.append('radius', radius);
+    if (search) params.append('search', search);
+    if (page) params.append('page', page);
+    if (limit) params.append('limit', limit);
+
+    const response = await authApi.get(`/activities/nearby?${params.toString()}`);
+    return response.data;
   }
 };
 
