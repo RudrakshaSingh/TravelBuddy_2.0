@@ -2,8 +2,8 @@ import { Circle, GoogleMap, Marker } from '@react-google-maps/api';
 import { AlertCircle, ChevronRight, Clock, Filter, Loader2, MapPin, Navigation, Phone, Search, ShoppingBag, Star, Users, X } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useGoogleMaps } from '../context/GoogleMapsContext';
-import { placesService } from '../redux/services/api';
+import { useGoogleMaps } from '../../context/GoogleMapsContext';
+import { placesService } from '../../redux/services/api';
 
 const containerStyle = { width: '100%', height: '100%' };
 const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };

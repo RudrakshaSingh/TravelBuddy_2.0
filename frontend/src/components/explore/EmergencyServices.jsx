@@ -1,9 +1,9 @@
 import { Circle, GoogleMap, Marker } from '@react-google-maps/api';
-import { AlertCircle, ChevronRight, Clock, Filter, Loader2, MapPin, Navigation, Phone, Search, Star, Train, Users, X } from 'lucide-react';
+import { AlertCircle, ChevronRight, Clock, Filter, Loader2, MapPin, Navigation, Phone, Search, Shield, Star, Users, X } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useGoogleMaps } from '../context/GoogleMapsContext';
-import { placesService } from '../redux/services/api';
+import { useGoogleMaps } from '../../context/GoogleMapsContext';
+import { placesService } from '../../redux/services/api';
 
 const containerStyle = { width: '100%', height: '100%' };
 const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };
@@ -16,10 +16,10 @@ const mapOptions = {
 };
 
 function Placeholder({ category, className }) {
-  const icons = { 'Airport': '✈️', 'Bus Station': '🚌', 'Train Station': '🚆', 'Metro': '🚇', 'Car Rental': '🚗', 'Gas Station': '⛽' };
+  const icons = { 'Hospital': '🏥', 'Pharmacy': '💊', 'Police': '👮', 'Fire Station': '🚒', 'ATM': '🏧', 'Bank': '🏦' };
   return (
     <div className={`${className} bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center`}>
-      <span className="text-3xl">{icons[category] || '🚉'}</span>
+      <span className="text-3xl">{icons[category] || '🆘'}</span>
     </div>
   );
 }
@@ -53,7 +53,7 @@ function DetailModal({ place, onClose }) {
   );
 }
 
-function TransportTravel() {
+function EmergencyServices() {
   const { isLoaded } = useGoogleMaps();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -74,13 +74,13 @@ function TransportTravel() {
     pageToken ? setLoadingMore(true) : setLoadingPlaces(true);
     setError('');
     try {
-      const response = await placesService.getNearbyTransport({ lat, lng, radius: DEFAULT_RADIUS, pageToken });
+      const response = await placesService.getNearbyEmergency({ lat, lng, radius: DEFAULT_RADIUS, pageToken });
       if (response.statusCode === 200) {
         const { places, nextPageToken } = response.data;
         pageToken ? setNearbyPlaces(prev => [...prev, ...places]) : setNearbyPlaces(places || []);
         setNearbyNextToken(nextPageToken);
       } else setError(response.message);
-    } catch (err) { setError('Failed to fetch transport services.'); }
+    } catch (err) { setError('Failed to fetch emergency services.'); }
     finally { setLoadingPlaces(false); setLoadingMore(false); }
   }, []);
 
@@ -88,7 +88,7 @@ function TransportTravel() {
     pageToken ? setLoadingMore(true) : (setLoadingPlaces(true), setSearchResults([]));
     setError('');
     try {
-      const response = await placesService.getNearbyTransport({ lat, lng, radius: DEFAULT_RADIUS, search: query, pageToken });
+      const response = await placesService.getNearbyEmergency({ lat, lng, radius: DEFAULT_RADIUS, search: query, pageToken });
       if (response.statusCode === 200) {
         const { places, nextPageToken } = response.data;
         pageToken ? setSearchResults(prev => [...prev, ...places]) : setSearchResults(places || []);
@@ -131,17 +131,17 @@ function TransportTravel() {
               <div className="relative">
                 <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-2xl" />
                 <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg shadow-orange-500/20">
-                  <Train className="h-7 w-7 text-white" />
+                  <Shield className="h-7 w-7 text-white" />
                 </div>
               </div>
-              <div><h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transport & Travel</h1><div className="flex items-center space-x-2 mt-1"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-sm font-medium text-gray-600">{isSearchMode ? `${displayedPlaces.length} results` : `${displayedPlaces.length} nearby`}</p></div></div>
+              <div><h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Emergency Services</h1><div className="flex items-center space-x-2 mt-1"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /><p className="text-sm font-medium text-gray-600">{isSearchMode ? `${displayedPlaces.length} results` : `${displayedPlaces.length} nearby`}</p></div></div>
             </div>
             <button onClick={() => setShowList(!showList)} className="sm:hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-xl border border-orange-100">{showList ? <X className="h-5 w-5" /> : <Filter className="h-5 w-5" />}</button>
           </div>
           <div className="flex gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input type="text" placeholder="Search airports, stations..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full pl-12 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 text-gray-900 placeholder-gray-400 shadow-sm" />
+              <input type="text" placeholder="Search hospitals, pharmacies..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full pl-12 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 text-gray-900 placeholder-gray-400 shadow-sm" />
               {searchQuery && <button onClick={handleClearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>}
             </div>
             <button onClick={handleSearch} disabled={loadingPlaces} className="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-orange-500/20">{loadingPlaces ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}<span className="hidden sm:inline">Search</span></button>
@@ -151,10 +151,10 @@ function TransportTravel() {
       </div>
       <div className="max-w-[1800px] mx-auto flex flex-col lg:flex-row gap-6 p-4 sm:p-6">
         <div className={`${showList ? 'block' : 'hidden'} lg:block lg:w-96 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-xl overflow-hidden`}>
-          <div className="bg-gradient-to-r from-orange-50 to-white border-b border-gray-100 px-6 py-4"><h2 className="font-bold text-gray-900 text-lg">{isSearchMode ? '🔍 Search Results' : '📍 Nearby Transport'}</h2>{isSearchMode && <p className="text-sm text-gray-500 mt-1">Results for "{searchQuery}"</p>}</div>
+          <div className="bg-gradient-to-r from-orange-50 to-white border-b border-gray-100 px-6 py-4"><h2 className="font-bold text-gray-900 text-lg">{isSearchMode ? '🔍 Search Results' : '📍 Nearby Services'}</h2>{isSearchMode && <p className="text-sm text-gray-500 mt-1">Results for "{searchQuery}"</p>}</div>
           <div className="overflow-y-auto max-h-[400px] lg:max-h-[calc(100vh-320px)] p-4 space-y-3">
             {loadingPlaces && <div className="flex flex-col items-center py-12"><Loader2 className="w-8 h-8 animate-spin text-orange-500 mb-3" /><p className="text-sm text-gray-500">Loading...</p></div>}
-            {!loadingPlaces && displayedPlaces.length === 0 && <div className="text-center py-12"><Search className="h-10 w-10 text-gray-400 mx-auto mb-4" /><p className="text-gray-900">No transport found</p></div>}
+            {!loadingPlaces && displayedPlaces.length === 0 && <div className="text-center py-12"><Search className="h-10 w-10 text-gray-400 mx-auto mb-4" /><p className="text-gray-900">No services found</p></div>}
             {displayedPlaces.map((place) => (
               <div key={place._id} onClick={() => setDetailPlace(place)} className="group rounded-xl cursor-pointer transition-all bg-white hover:bg-orange-50 border border-gray-100 hover:border-orange-200 shadow-sm hover:shadow-md p-4">
                 <div className="flex items-start space-x-4">
@@ -169,7 +169,7 @@ function TransportTravel() {
         </div>
         <div className="flex-1 min-h-[500px] lg:min-h-0">
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden h-full border border-gray-100">
-            <div className="bg-gradient-to-r from-gray-900 to-black text-white p-5 flex items-center space-x-3 border-b border-gray-100"><div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm"><Navigation className="h-5 w-5 text-orange-400" /></div><div><span className="font-bold text-lg">Map View</span><p className="text-gray-400 text-xs">Explore transport</p></div></div>
+            <div className="bg-gradient-to-r from-gray-900 to-black text-white p-5 flex items-center space-x-3 border-b border-gray-100"><div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm"><Navigation className="h-5 w-5 text-orange-400" /></div><div><span className="font-bold text-lg">Map View</span><p className="text-gray-400 text-xs">Explore services</p></div></div>
             <div className="h-[calc(100%-80px)] min-h-[450px] relative">
               <GoogleMap mapContainerStyle={containerStyle} center={selectedPlace?.currentLocation || userLocation || DEFAULT_CENTER} zoom={userLocation ? 12 : 5} options={{ ...mapOptions }}>
                 {userLocation && <><Marker position={userLocation} icon={getUserMarkerIcon()} title="Your location" /><Circle center={userLocation} radius={DEFAULT_RADIUS} options={{ fillColor: '#f9731633', strokeColor: '#f97316', strokeOpacity: 0.8, strokeWeight: 2 }} /></>}
@@ -195,4 +195,4 @@ function TransportTravel() {
   );
 }
 
-export default TransportTravel;
+export default EmergencyServices;

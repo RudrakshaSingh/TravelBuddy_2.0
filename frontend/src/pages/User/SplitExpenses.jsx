@@ -14,16 +14,16 @@ import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import {
-  ExpenseCard,
-  GroupCard,
-  SettlementCard,
+  AddExpenseModal,
   AIOptimizationCard,
   CreateGroupModal,
-  AddExpenseModal,
+  ExpenseCard,
+  GroupCard,
   GroupsSidebar,
-  RecentActivitySidebar,
   ProTipCard,
-} from '../../components/Expenses';
+  RecentActivitySidebar,
+  SettlementCard,
+} from '../../components/expenses';
 
 // Constants
 const CATEGORIES = [

@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { useCallback,useEffect, useState } from 'react';
 import { useLocation,useNavigate } from 'react-router-dom';
 
-import { useUserActions } from '../redux/hooks/useUser';
+import { useUserActions } from '../../redux/hooks/useUser';
 
 // Check if error is a network/connection error
 const isNetworkError = (err) => {

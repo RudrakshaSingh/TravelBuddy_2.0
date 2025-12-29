@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { verifySubscription } from '../redux/slices/userSlice';
 import { useAuth } from '@clerk/clerk-react';
-import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { ArrowRight,CheckCircle, Loader2, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate,useSearchParams } from 'react-router-dom';
+
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { verifySubscription } from '../../redux/slices/userSlice';
 
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
