@@ -834,6 +834,11 @@ export const expenseService = {
     return response.data;
   },
 
+  removeMemberFromGroup: async (authApi, groupId, memberId) => {
+    const response = await authApi.delete(`/expenses/groups/${groupId}/members/${memberId}`);
+    return response.data;
+  },
+
 
   createExpense: async (authApi, expenseData) => {
     const response = await authApi.post('/expenses', expenseData);
@@ -868,6 +873,33 @@ export const expenseService = {
 
   getSettlementHistory: async (authApi, groupId) => {
     const response = await authApi.get(`/expenses/groups/${groupId}/settlements`);
+    return response.data;
+  },
+
+  sendPaymentReminder: async (authApi, reminderData) => {
+    const response = await authApi.post('/expenses/remind', reminderData);
+    return response.data;
+  },
+};
+
+export const notificationService = {
+  getNotifications: async (authApi) => {
+    const response = await authApi.get('/notifications');
+    return response.data;
+  },
+
+  markAsRead: async (authApi, id) => {
+    const response = await authApi.put(`/notifications/${id}/read`);
+    return response.data;
+  },
+
+  markAllAsRead: async (authApi) => {
+    const response = await authApi.put('/notifications/read-all');
+    return response.data;
+  },
+
+  deleteAll: async (authApi) => {
+    const response = await authApi.delete('/notifications');
     return response.data;
   },
 };
