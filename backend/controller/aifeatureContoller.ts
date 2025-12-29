@@ -1,6 +1,6 @@
+import axios from 'axios';
 import { NextFunction,Request, Response } from "express";
 import OpenAI from "openai";
-import axios from 'axios';
 
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";

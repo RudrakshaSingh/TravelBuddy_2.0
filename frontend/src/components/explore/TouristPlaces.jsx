@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useGoogleMaps } from '../context/GoogleMapsContext';
-import { placesService } from '../redux/services/api';
+import { useGoogleMaps } from '../../context/GoogleMapsContext';
+import { placesService } from '../../redux/services/api';
 
 const containerStyle = { width: '100%', height: '100%' };
 const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };

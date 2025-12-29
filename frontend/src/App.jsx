@@ -1,61 +1,78 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+
+// Common components
+import AuthGuard from "./components/common/AuthGuard";
+// Expense components
+import SplitExpenses from "./components/expenses/SplitExpenses";
+// Explore components
+import EmergencyServices from "./components/explore/EmergencyServices";
+import FoodNightlife from "./components/explore/FoodNightlife";
+import NearbyActivities from "./components/explore/NearbyActivities";
+import NearByTravellers from "./components/explore/NearbyTravellers";
+import NearHotels from "./components/explore/NearHotels";
+import ShoppingEntertainment from "./components/explore/ShoppingEntertainment";
+import TouristPlaces from "./components/explore/TouristPlaces";
+import TransportTravel from "./components/explore/TransportTravel";
+// Layout components
+import Layout from "./components/layout/Layout";
 import { AudioPlaybackProvider } from "./context/AudioPlaybackContext";
-import AuthGuard from "./components/AuthGuard";
-import EmergencyServices from "./components/EmergencyServices";
-import FoodNightlife from "./components/FoodNightlife";
-import Layout from "./components/layout";
-import NearbyActivities from "./components/NearbyActivities";
-import NearByTravellers from "./components/NearByTravellers";
-import NearHotels from "./components/NearHotels";
-import ShoppingEntertainment from "./components/ShoppingEntertainment";
-import TouristPlaces from "./components/TouristPlaces";
-import TransportTravel from "./components/TransportTravel";
-import AboutUs from "./pages/aboutUs";
-import ActivityDetails from "./pages/Activity/ActivityDetails";
-import ActivityPaymentStatus from "./pages/Activity/ActivityPaymentStatus";
-import BuySubscription from "./pages/Activity/buySubscription";
-import CreateActivity from "./pages/Activity/createActivity";
-import ActivityNearMe from "./pages/Activity/getNearByActivity";
-import JoinActivityGroup from "./pages/Activity/JoinActivityGroup";
-import JoinedActivities from "./pages/Activity/JoinedActivities";
-import ManageJoinedActivity from "./pages/Activity/ManageJoinedActivity";
-import MyCreatedActivities from "./pages/Activity/MyCreatedActivites";
-import ManageActivity from "./pages/Activity/UpdateActivity";
-import AiBuddyHomePage from "./pages/AiFeatures/AiBuddyHomePage";
-import AiLocalGuide from "./pages/AiFeatures/AiLocalGuide";
-import AiPackagePlanner from "./pages/AiFeatures/AiPackagePlanner";
-import AiTripPlanner from "./pages/AiFeatures/AiTripPlanner";
-import AiWeatherPlanner from "./pages/AiFeatures/AiWeatherPlanner";
-import ChatPage from "./pages/Chat/ChatPage";
-import GroupChat from "./pages/Chat/GroupChat";
-import BrowseGuides from "./pages/Guide/BrowseGuides";
-import GuideBookingPaymentStatus from "./pages/Guide/GuideBookingPaymentStatus";
-import GuideDashboard from "./pages/Guide/GuideDashboard";
-import GuideDetail from "./pages/Guide/GuideDetail";
-import GuideProfileSetup from "./pages/Guide/GuideProfileSetup";
-import MyGuideBookings from "./pages/Guide/MyGuideBookings";
-import CommunityGuidelines from "./pages/miscellaneous/CommunityGuidelines";
-import CookiePolicy from "./pages/miscellaneous/CookiePolicy";
-import PrivacyPolicy from "./pages/miscellaneous/PrivacyPolicy";
-import RefundPolicy from "./pages/miscellaneous/RefundPolicy";
-import TermsOfService from "./pages/miscellaneous/TermsOfService";
-import NotFound from "./pages/NotFound";
-import PaymentStatus from "./pages/paymentStatus";
-import CompleteRegistration from "./pages/User/completeRegistration";
-import Connections from "./pages/User/Connections";
-import ProfilePage from "./pages/User/profile";
-import SplitExpenses from "./components/Expenses/SplitExpenses";
-import SignUpPage from "./pages/User/signUp";
-import SignInPage from "./pages/User/singIn";
-import TravelerProfile from "./pages/User/TravelerProfile";
-import HomePage from "./pages/userHome";
-import ArticleDetail from "./pages/UserPosts/ArticleDetail";
-import ManageArticle from "./pages/UserPosts/ManageArticle";
-import ManagePost from "./pages/UserPosts/ManagePost";
-import ReadArticle from "./pages/UserPosts/RealArticle";
-import UploadArticle from "./pages/UserPosts/UploadArticle";
-import UploadPost from "./pages/UserPosts/UploadPost";
-import UserPosts from "./pages/UserPosts/UserPosts";
+// About pages
+import AboutUs from "./pages/about/AboutUs";
+// Activity pages
+import ActivityDetails from "./pages/activity/ActivityDetails";
+import ActivityPaymentStatus from "./pages/activity/ActivityPaymentStatus";
+import BuySubscription from "./pages/activity/buySubscription";
+import CreateActivity from "./pages/activity/createActivity";
+import ActivityNearMe from "./pages/activity/getNearByActivity";
+import JoinActivityGroup from "./pages/activity/JoinActivityGroup";
+import JoinedActivities from "./pages/activity/JoinedActivities";
+import ManageJoinedActivity from "./pages/activity/ManageJoinedActivity";
+import MyCreatedActivities from "./pages/activity/MyCreatedActivites";
+import ManageActivity from "./pages/activity/UpdateActivity";
+// AI pages
+import AiBuddyHomePage from "./pages/ai/AiBuddyHomePage";
+import AiLocalGuide from "./pages/ai/AiLocalGuide";
+import AiPackagePlanner from "./pages/ai/AiPackagePlanner";
+import AiTripPlanner from "./pages/ai/AiTripPlanner";
+import AiWeatherPlanner from "./pages/ai/AiWeatherPlanner";
+// Auth pages
+import CompleteRegistration from "./pages/auth/CompleteRegistration";
+import SignInPage from "./pages/auth/SignIn";
+import SignUpPage from "./pages/auth/SignUp";
+// Chat pages
+import ChatPage from "./pages/chat/ChatPage";
+import GroupChat from "./pages/chat/GroupChat";
+// Error pages
+import NotFound from "./pages/error/NotFound";
+// Guide pages
+import BrowseGuides from "./pages/guide/BrowseGuides";
+import GuideBookingPaymentStatus from "./pages/guide/GuideBookingPaymentStatus";
+import GuideDashboard from "./pages/guide/GuideDashboard";
+import GuideDetail from "./pages/guide/GuideDetail";
+import GuideProfileSetup from "./pages/guide/GuideProfileSetup";
+import MyGuideBookings from "./pages/guide/MyGuideBookings";
+// Home pages
+import HomePage from "./pages/home/UserHome";
+// Legal pages
+import CommunityGuidelines from "./pages/legal/CommunityGuidelines";
+import CookiePolicy from "./pages/legal/CookiePolicy";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import RefundPolicy from "./pages/legal/RefundPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
+// Payment pages
+import PaymentStatus from "./pages/payment/PaymentStatus";
+// Posts pages
+import ArticleDetail from "./pages/posts/ArticleDetail";
+import ManageArticle from "./pages/posts/ManageArticle";
+import ManagePost from "./pages/posts/ManagePost";
+import ReadArticle from "./pages/posts/RealArticle";
+import UploadArticle from "./pages/posts/UploadArticle";
+import UploadPost from "./pages/posts/UploadPost";
+import UserPosts from "./pages/posts/UserPosts";
+// User pages
+import Connections from "./pages/user/Connections";
+import ProfilePage from "./pages/user/profile";
+import TravelerProfile from "./pages/user/TravelerProfile";
 
 
 function App() {
@@ -129,7 +146,7 @@ function App() {
         <Route path="upload-article" element={<AuthGuard><UploadArticle /></AuthGuard>} />
         <Route path="manage-article" element={<AuthGuard><ManageArticle /></AuthGuard>} />
 
-        {/* Miscellaneous/Legal Pages */}
+        {/* Legal Pages */}
         <Route path="privacy" element={<PrivacyPolicy />} />
         <Route path="terms" element={<TermsOfService />} />
         <Route path="cookies" element={<CookiePolicy />} />
@@ -145,4 +162,3 @@ function App() {
 }
 
 export default App;
-
