@@ -37,7 +37,7 @@ const activitySchema = new Schema<IActivity>({
 
   date: { type: Date, required: true },
   startTime: { type: Date },
-  endTime: { type: Date },
+  endDate: { type: Date },
 
   location: geoPointSchema,
 

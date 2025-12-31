@@ -6,6 +6,8 @@ import { toast } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import Calendar from "../../components/ui/Calendar";
+import TimePicker from "../../components/ui/TimePicker";
 import { useGoogleMaps } from "../../context/GoogleMapsContext";
 import { createActivity } from "../../redux/slices/ActivitySlice";
 import { generateDescription } from "../../redux/slices/aiSlice";
@@ -15,8 +17,8 @@ const categories = ["Adventure", "Culture", "Food", "Nightlife", "Sports", "Natu
 
 // Reusable UI Components
 const Section = ({ icon: Icon, title, children, className = "" }) => (
-  <div className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6 ${className}`}>
-    <h2 className="text-xl font-semibold flex items-center gap-2"><Icon className="w-5 h-5 text-indigo-500" />{title}</h2>
+  <div className={`bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl shadow-gray-300/60 border border-gray-100 space-y-6 hover:shadow-2xl hover:shadow-gray-400/50 transition-all duration-300 ${className}`}>
+    <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-800"><Icon className="w-5 h-5 text-indigo-500" />{title}</h2>
     {children}
   </div>
 );
@@ -54,7 +56,7 @@ export default function CreateActivity() {
   const [center, setCenter] = useState({ lat: 28.6139, lng: 77.2090 });
 
   const [formData, setFormData] = useState({
-    title: "", description: "", category: "", date: "", startTime: "", endTime: "",
+    title: "", description: "", category: "", date: "", startTime: "", endDate: "",
     price: "", foreignerPrice: "", maxCapacity: "", gender: "Any",
     location: null, // {lat, lng, address}
     photos: [], videos: []
@@ -185,11 +187,16 @@ export default function CreateActivity() {
         else if (key === 'videos') {
              formData.videos.forEach(v => payload.append("videos", v));
         }
-        else if (key === 'startTime' || key === 'endTime') {
+        else if (key === 'startTime') {
             if (formData[key] && formData.date) {
                 // Combine date and time
                 const dateTimeStr = `${formData.date}T${formData[key]}`;
                 payload.append(key, new Date(dateTimeStr).toISOString());
+            }
+        }
+        else if (key === 'endDate') {
+            if (formData[key]) {
+                payload.append(key, new Date(formData[key]).toISOString());
             }
         }
         else {
@@ -203,7 +210,7 @@ export default function CreateActivity() {
       })).unwrap(); // unwrap to catch errors here
 
       toast.success("Activity created successfully!");
-      navigate("/activities"); // Redirect after success?
+      navigate("/my-activities");
     } catch (err) {
       console.error(err);
       const errorMessage = typeof err === 'string'
@@ -215,11 +222,11 @@ export default function CreateActivity() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pt-20 mt-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-slate-100 p-4 md:p-8 pt-24">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Activity</h1>
-          <p className="text-gray-500 mt-2">Share your adventure with the world.</p>
+        <div className="mb-8 mt-20">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Create New Activity</h1>
+          <p className="text-gray-600 mt-2">Share your adventure with the world.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -234,9 +241,25 @@ export default function CreateActivity() {
 
             <Section icon={Clock} title="Date & Time">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input label="Date" type="date" name="date" value={formData.date} onChange={handleChange} required />
-                <Input label="Start Time" type="time" name="startTime" value={formData.startTime} onChange={handleChange} required />
-                <Input label="End Time" type="time" name="endTime" value={formData.endTime} onChange={handleChange} />
+                <Calendar
+                  label="Start Date"
+                  value={formData.date}
+                  onChange={(date) => setFormData(prev => ({ ...prev, date }))}
+                  placeholder="Select start date"
+                />
+                <TimePicker
+                  label="Start Time"
+                  value={formData.startTime}
+                  onChange={(time) => setFormData(prev => ({ ...prev, startTime: time }))}
+                  placeholder="Select time"
+                />
+                <Calendar
+                  label="End Date"
+                  value={formData.endDate}
+                  onChange={(date) => setFormData(prev => ({ ...prev, endDate: date }))}
+                  placeholder="Select end date"
+                  minDate={formData.date}
+                />
               </div>
             </Section>
 

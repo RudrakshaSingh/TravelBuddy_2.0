@@ -14,7 +14,7 @@ export const activityZodSchema = z.object({
 
     date: z.string().or(z.date()).transform((val) => new Date(val)),
     startTime: z.string().or(z.date()).optional().transform((val) => val ? new Date(val) : undefined),
-    endTime: z.string().or(z.date()).optional().transform((val) => val ? new Date(val) : undefined),
+    endDate: z.string().or(z.date()).optional().transform((val) => val ? new Date(val) : undefined),
 
     location: geoPointSchema.optional(),
 
@@ -35,23 +35,14 @@ export const activityZodSchema = z.object({
 
     maxCapacity: z.coerce.number().min(1, "Max capacity must be at least 1"),
 }).superRefine((data, ctx) => {
-    const { startTime, endTime } = data;
+    const { date, endDate } = data;
 
-    // either both present or both absent
-    if ((startTime && !endTime) || (!startTime && endTime)) {
+    // endDate must be on or after start date
+    if (date && endDate && endDate < date) {
       ctx.addIssue({
         code: "custom",
-        path: startTime ? ["endTime"] : ["startTime"],
-        message: "Both startTime and endTime must be provided together",
-      });
-    }
-
-    // start < end
-    if (startTime && endTime && startTime >= endTime) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["endTime"],
-        message: "endTime must be after startTime",
+        path: ["endDate"],
+        message: "End date must be on or after start date",
       });
     }
   });
