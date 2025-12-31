@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import EmojiPicker from 'emoji-picker-react';
 import {
   ArrowLeft,
@@ -9,7 +9,10 @@ import {
   MapPin,
   MessageCircle,
   Mic,
+  MicOff,
   Paperclip,
+  Phone,
+  PhoneOff,
   Send,
   Smile,
   Sticker,
@@ -58,9 +61,9 @@ export default function ChatPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { user: authUser } = useUser();
   const dispatch = useDispatch();
-  const { sendTypingIndicator } = useSocket();
-  
+
   const {
     conversations,
     currentChatUserId,
@@ -70,7 +73,7 @@ export default function ChatPage() {
     sendingMessage,
     typingUsers,
   } = useSelector((state) => state.chat);
-  
+
   const [messageInput, setMessageInput] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(false);
@@ -82,7 +85,7 @@ export default function ChatPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activeMediaTab, setActiveMediaTab] = useState('emoji');
   const [showAttachments, setShowAttachments] = useState(false);
-  
+
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingRemaining, setRecordingRemaining] = useState(MAX_RECORDING_SECONDS);
@@ -95,8 +98,105 @@ export default function ChatPage() {
   const imageInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
+  // Call State
+  const [call, setCall] = useState({});
+  const [callAccepted, setCallAccepted] = useState(false);
+  const [callEnded, setCallEnded] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [stream, setStream] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  const myVideo = useRef();
+  const userVideo = useRef();
+  const connectionRef = useRef();
+
+  // Audio refs for call sounds
+  const incomingAudio = useRef(new Audio("https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3"));
+  const outgoingAudio = useRef(new Audio("https://assets.mixkit.co/active_storage/sfx/2367/2367-preview.mp3"));
+
+  // Configure audio loops
+  useEffect(() => {
+    incomingAudio.current.loop = true;
+    outgoingAudio.current.loop = true;
+    return () => {
+      incomingAudio.current.pause();
+      outgoingAudio.current.pause();
+    }
+  }, []);
+
+  // Handle Call Sounds
+  useEffect(() => {
+    if (call.isReceivingCall && !callAccepted && !callEnded) {
+      incomingAudio.current.play().catch(e => console.log("Audio play failed", e));
+    } else {
+      incomingAudio.current.pause();
+      incomingAudio.current.currentTime = 0;
+    }
+
+    if (isCalling && !callAccepted && !callEnded) {
+      outgoingAudio.current.play().catch(e => console.log("Audio play failed", e));
+    } else {
+      outgoingAudio.current.pause();
+      outgoingAudio.current.currentTime = 0;
+    }
+  }, [call.isReceivingCall, isCalling, callAccepted, callEnded]);
+
   // Initialize socket connection
-  useSocket();
+  const { getSocket, sendTypingIndicator } = useSocket();
+  const socket = getSocket();
+
+  useEffect(() => {
+    if(!socket) return;
+
+    socket.on('callUser', ({ from, name: callerName, signal }) => {
+      setCall({ isReceivingCall: true, from, name: callerName, signal });
+    });
+
+    socket.on('callAccepted', (signal) => {
+      setCallAccepted(true);
+      connectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
+    });
+
+    socket.on('iceCandidate', async (candidate) => {
+      if (connectionRef.current) {
+        try {
+          await connectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error("Error adding received ice candidate", e);
+        }
+      }
+    });
+
+    socket.on('callEnded', () => {
+      setCallEnded(true);
+      leaveCall();
+    });
+
+    return () => {
+      socket.off('callUser');
+      socket.off('callAccepted');
+      socket.off('iceCandidate');
+      socket.off('callEnded');
+    };
+  }, [socket]);
+
+  // Call Timer
+  useEffect(() => {
+    let interval;
+    if (callAccepted && !callEnded) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [callAccepted, callEnded]);
+
+  const formatDuration = (seconds) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -107,7 +207,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (userId) {
       dispatch(setCurrentChat(userId));
-      
+
       const existingConv = conversations.find(c => c.user._id === userId);
       if (existingConv) {
         setCurrentUser(existingConv.user);
@@ -123,6 +223,7 @@ export default function ChatPage() {
                 name: response.data.fullName,
                 profileImage: response.data.profilePicture,
                 isOnline: response.data.isOnline,
+                clerk_id: response.data.clerk_id,
               };
               setCurrentUser(user);
               dispatch(addNewConversation(user));
@@ -165,28 +266,28 @@ export default function ChatPage() {
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || sendingMessage || !currentChatUserId) return;
-    
+
     const message = messageInput.trim();
     setMessageInput('');
     setShowEmojiPicker(false);
-    
+
     sendTypingIndicator(currentChatUserId, false);
-    
+
     await dispatch(sendMessage({
       getToken,
       receiverId: currentChatUserId,
       message,
     }));
-    
+
     inputRef.current?.focus();
   };
 
   const handleInputChange = (e) => {
     setMessageInput(e.target.value);
-    
+
     if (currentChatUserId) {
       sendTypingIndicator(currentChatUserId, true);
-      
+
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -212,13 +313,13 @@ export default function ChatPage() {
   // Sticker send
   const handleStickerSend = async (stickerUrl) => {
     if (!currentChatUserId || sendingMessage) return;
-    
+
     setShowEmojiPicker(false);
-    
+
     const formData = new FormData();
     formData.append("attachmentUrl", stickerUrl);
     formData.append("type", "IMAGE");
-    
+
     await dispatch(sendMessage({
       getToken,
       receiverId: currentChatUserId,
@@ -232,12 +333,12 @@ export default function ChatPage() {
     if (!file || !currentChatUserId || sendingMessage) return;
 
     setShowAttachments(false);
-    
+
     const formData = new FormData();
     formData.append("attachment", file);
-    
+
     const toastId = toast.loading("Sending attachment...");
-    
+
     try {
       await dispatch(sendMessage({
         getToken,
@@ -268,13 +369,13 @@ export default function ChatPage() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        
+
         await dispatch(sendMessage({
           getToken,
           receiverId: currentChatUserId,
           message: `📍 My Location: ${mapLink}`,
         }));
-        
+
         toast.dismiss(toastId);
         toast.success("Location shared!");
       },
@@ -289,10 +390,10 @@ export default function ChatPage() {
   // Voice recording
   const startRecording = async () => {
     if (isRecording) return;
-    
+
     clearInterval(recordingIntervalRef.current);
     setRecordingRemaining(MAX_RECORDING_SECONDS);
-    
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -325,7 +426,7 @@ export default function ChatPage() {
         formData.append("type", "AUDIO");
 
         const toastId = toast.loading("Sending voice message...");
-        
+
         try {
           await dispatch(sendMessage({
             getToken,
@@ -380,10 +481,132 @@ export default function ChatPage() {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (d.toDateString() === today.toDateString()) return 'Today';
     if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return d.toLocaleDateString();
+  };
+
+  // Call Functionality
+  const callUser = async () => {
+    setIsCalling(true);
+    setCallEnded(false);
+
+    try {
+      const currentStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      setStream(currentStream);
+
+      const peer = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
+      currentStream.getTracks().forEach((track) => peer.addTrack(track, currentStream));
+
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("iceCandidate", {
+            to: currentUser?.clerk_id,
+            candidate: event.candidate,
+          });
+        }
+      };
+
+      peer.ontrack = (event) => {
+        if (userVideo.current) {
+          userVideo.current.srcObject = event.streams[0];
+        }
+      };
+
+      connectionRef.current = peer;
+
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+
+      socket.emit("callUser", {
+        userToCall: currentUser?.clerk_id,
+        signalData: offer,
+        from: authUser?.id, // Send my Clerk ID
+        name: authUser?.fullName || "User"
+      });
+    } catch (err) {
+      console.error("Failed to start call:", err);
+      toast.error("Could not access microphone");
+      setIsCalling(false);
+    }
+  };
+
+  const answerCall = async () => {
+    setCallAccepted(true);
+
+    try {
+      let currentStream = stream;
+      if (!currentStream) {
+        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        setStream(currentStream);
+      }
+
+      const peer = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
+      currentStream.getTracks().forEach((track) => peer.addTrack(track, currentStream));
+
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("iceCandidate", {
+            to: call.from,
+            candidate: event.candidate,
+          });
+        }
+      };
+
+      peer.ontrack = (event) => {
+        if (userVideo.current) {
+          userVideo.current.srcObject = event.streams[0];
+        }
+      };
+
+      connectionRef.current = peer;
+
+      await peer.setRemoteDescription(new RTCSessionDescription(call.signal));
+
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+
+      socket.emit("answerCall", { signal: answer, to: call.from });
+
+    } catch (err) {
+      console.error("Failed to answer call:", err);
+      toast.error("Could not access microphone");
+    }
+  };
+
+  const leaveCall = () => {
+    setCallEnded(true);
+    setCall({});
+    setIsCalling(false);
+    setCallAccepted(false);
+
+    if (connectionRef.current) {
+      connectionRef.current.close();
+      connectionRef.current = null;
+    }
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+
+    socket.emit("endCall", { to: callAccepted ? currentChatUserId : call.from });
+    // Reload window to clear all WebRTC states cleanly if needed, or just reset state
+    // window.location.reload(); // Hard reset is sometimes safer for WebRTC cleanup but jarring
+  };
+
+  const toggleMute = () => {
+    if (stream) {
+      stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
+      setIsMuted(!stream.getAudioTracks()[0].enabled);
+    }
   };
 
   const currentMessages = messages[currentChatUserId] || [];
@@ -402,7 +625,7 @@ export default function ChatPage() {
   const renderMessage = (msg, isSent) => {
     const isImage = msg.type === "IMAGE" || (msg.attachmentUrl && msg.attachmentUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i));
     const isAudio = msg.type === "AUDIO" || (msg.attachmentUrl && msg.attachmentUrl.match(/\.(webm|mp3|wav|ogg)$/i));
-    
+
     // Emoji detection: check if message is only emojis
     const emojiRegex = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}\s]+$/u;
     const emojiCount = msg.message ? [...msg.message].filter(char => /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u.test(char)).length : 0;
@@ -427,7 +650,7 @@ export default function ChatPage() {
             <img src={msg.attachmentUrl} alt="Attachment" className="max-w-full max-h-[300px] object-cover rounded-md" />
           </div>
         )}
-        
+
         {isAudio && msg.attachmentUrl && (
           <div className="mb-1">
             <AudioMessage
@@ -437,7 +660,7 @@ export default function ChatPage() {
             />
           </div>
         )}
-        
+
         {msg.message && (
           <div className="relative">
             <p className={`leading-relaxed break-words ${isOnlyEmoji ? '' : 'pr-14'} ${getEmojiSizeClass()}`}>{msg.message}</p>
@@ -472,8 +695,8 @@ export default function ChatPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button 
-            onClick={() => navigate('/connections')} 
+          <button
+            onClick={() => navigate('/connections')}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors group"
           >
             <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
@@ -491,7 +714,7 @@ export default function ChatPage() {
                   <h3 className="font-semibold text-gray-800 text-lg">Chats</h3>
                 </div>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
@@ -545,6 +768,14 @@ export default function ChatPage() {
                         <p className="text-sm text-gray-400">Offline</p>
                       )}
                     </div>
+                    {/* Call Button */}
+                    <button
+                      onClick={callUser}
+                      className="ml-auto p-3 hover:bg-orange-100 rounded-full text-orange-500 transition-colors"
+                      title="Start Voice Call"
+                    >
+                      <Phone className="w-6 h-6" />
+                    </button>
                   </div>
 
                   {/* Messages */}
@@ -564,9 +795,9 @@ export default function ChatPage() {
                     ) : (
                       currentMessages.map((msg, index) => {
                         const isSent = msg.senderId !== currentChatUserId;
-                        const showDate = index === 0 || 
+                        const showDate = index === 0 ||
                           new Date(msg.createdAt).toDateString() !== new Date(currentMessages[index - 1].createdAt).toDateString();
-                        
+
                         return (
                           <div key={msg._id || index}>
                             {showDate && (
@@ -732,10 +963,10 @@ export default function ChatPage() {
                         onClick={messageInput.trim() ? handleSendMessage : (isRecording ? stopRecording : startRecording)}
                         disabled={sendingMessage}
                         className={`p-3 rounded-full transition-all flex items-center justify-center shadow-md ${
-                          isRecording 
-                            ? 'bg-red-500 hover:bg-red-600' 
-                            : messageInput.trim() 
-                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600' 
+                          isRecording
+                            ? 'bg-red-500 hover:bg-red-600'
+                            : messageInput.trim()
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
                               : 'text-gray-500 hover:bg-white/80 bg-white shadow-sm'
                         }`}
                       >
@@ -765,6 +996,80 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+
+      {/* Incoming Call Modal */}
+      {call.isReceivingCall && !callAccepted && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-80 shadow-2xl flex flex-col items-center animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mb-4 animate-bounce">
+               <Phone className="w-10 h-10 text-orange-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{call.name || "Unknown"}</h3>
+            <p className="text-gray-500 mb-8">Incoming Voice Call...</p>
+            <div className="flex gap-4 w-full">
+              <button
+                onClick={leaveCall}
+                className="flex-1 py-3 bg-red-100 text-red-600 rounded-xl font-semibold hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <PhoneOff className="w-5 h-5" /> Decline
+              </button>
+              <button
+                onClick={answerCall}
+                className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+              >
+                <Phone className="w-5 h-5" /> Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Call UI */}
+      {(callAccepted || isCalling) && !callEnded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/95 backdrop-blur-md">
+           <div className="flex flex-col items-center gap-8 text-white">
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full border-4 border-white/20 overflow-hidden shadow-2xl">
+                  {currentUser?.profileImage ? (
+                    <img src={currentUser.profileImage} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl font-bold">
+                      {currentUser?.name?.[0]}
+                    </div>
+                  )}
+                </div>
+                {/* Audio Visualizer / Ripple Effect */}
+                <div className="absolute inset-0 rounded-full border-2 border-orange-500 scale-110 animate-ping opacity-20"></div>
+                <div className="absolute inset-0 rounded-full border border-orange-500 scale-125 animate-pulse opacity-10"></div>
+              </div>
+
+              <div className="text-center">
+                 <h2 className="text-2xl font-bold mb-2">{callAccepted ? (call.name || currentUser?.name) : (currentUser?.name || "Calling...")}</h2>
+                 <p className="text-orange-300">{callAccepted ? formatDuration(callDuration) : "Ringing..."}</p>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={toggleMute}
+                  className={`p-4 rounded-full backdrop-blur-md transition-all ${isMuted ? 'bg-white text-gray-900' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                   {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+                </button>
+                <button
+                  onClick={leaveCall}
+                  className="p-5 bg-red-500 rounded-full text-white hover:bg-red-600 shadow-xl shadow-red-500/30 transition-transform hover:scale-105"
+                >
+                   <PhoneOff className="w-8 h-8" />
+                </button>
+              </div>
+
+              {/* Hidden Video Elements (Audio Only) */}
+              <audio ref={myVideo} autoPlay muted />
+              <audio ref={userVideo} autoPlay />
+           </div>
+        </div>
+      )}
     </div>
   );
 }

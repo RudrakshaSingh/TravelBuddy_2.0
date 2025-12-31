@@ -70,6 +70,39 @@ export const initializeSocket = (server: HttpServer) => {
                 });
             }
         });
+
+        // Call events
+        socket.on("callUser", (data: { userToCall: string; signalData: any; from: string; name: string }) => {
+            const receiverSocketId = userSocketMap[data.userToCall];
+            if (receiverSocketId) {
+                io?.to(receiverSocketId).emit("callUser", {
+                    signal: data.signalData,
+                    from: data.from,
+                    name: data.name
+                });
+            }
+        });
+
+        socket.on("answerCall", (data: { to: string; signal: any }) => {
+            const callerSocketId = userSocketMap[data.to];
+            if (callerSocketId) {
+                io?.to(callerSocketId).emit("callAccepted", data.signal);
+            }
+        });
+
+        socket.on("iceCandidate", (data: { to: string; candidate: any }) => {
+            const targetSocketId = userSocketMap[data.to];
+            if (targetSocketId) {
+                io?.to(targetSocketId).emit("iceCandidate", data.candidate);
+            }
+        });
+
+        socket.on("endCall", (data: { to: string }) => {
+            const targetSocketId = userSocketMap[data.to];
+            if (targetSocketId) {
+                io?.to(targetSocketId).emit("callEnded");
+            }
+        });
     });
 };
 

@@ -72,6 +72,7 @@ export const getConversations = asyncHandler(
             name: "$user.name",
             profileImage: "$user.profileImage",
             isOnline: "$user.isOnline",
+            clerk_id: "$user.clerk_id",
           },
           lastMessage: {
             message: "$lastMessage.message",
