@@ -297,7 +297,7 @@ export const getNearbyActivities = asyncHandler(
       const latitude = parseFloat(lat as string);
       const longitude = parseFloat(lng as string);
       const radiusMeters = parseFloat(radius as string) || 50000;
-      
+
       // Convert radius from meters to radians for $centerSphere
       // Earth's radius is approximately 6378100 meters
       const radiusInRadians = radiusMeters / 6378100;
@@ -495,6 +495,9 @@ export const updateActivity = asyncHandler(
       );
     }
 
+    // Get participants for notification
+    const participantsToNotify = activity.participants || [];
+
     //update the activity
     const updatedActivity = await Activity.findByIdAndUpdate(
       id,
@@ -503,6 +506,30 @@ export const updateActivity = asyncHandler(
     )
       .populate("createdBy", "name email mobile profileImage")
       .lean();
+
+    // Notify Creator (Self-Confirmation)
+    await sendNotification({
+      recipient: userId,
+      sender: userId,
+      type: "ACTIVITY_UPDATED_SELF",
+      message: `You updated the activity: ${activity.title}`,
+      link: `/activity/${id}`,
+      relatedId: id,
+    });
+
+    // Notify Participants about the update
+    for (const participantId of participantsToNotify) {
+      if (participantId.toString() !== userId.toString()) {
+        await sendNotification({
+          recipient: participantId,
+          sender: userId,
+          type: "ACTIVITY_UPDATED",
+          message: `${req.user.name} updated the activity: ${activity.title}`,
+          link: `/activity/${id}`,
+          relatedId: id,
+        });
+      }
+    }
 
     //Response
     return res.status(200).json(
@@ -593,6 +620,28 @@ export const joinActivity = asyncHandler(
       { $addToSet: { participants: userId } }
     );
 
+    // Notify the user who joined
+    await sendNotification({
+      recipient: userId,
+      sender: userId,
+      type: "ACTIVITY_JOINED_SELF",
+      message: `You joined the activity: ${activity.title}`,
+      link: `/activity/${id}`,
+      relatedId: id,
+    });
+
+    // Notify the activity creator
+    if (activity.createdBy.toString() !== userId.toString()) {
+      await sendNotification({
+        recipient: activity.createdBy,
+        sender: userId,
+        type: "ACTIVITY_JOINED",
+        message: `${req.user.name} joined your activity: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
+    }
+
     //Response
     return res.status(200).json(
       new ApiResponse(
@@ -660,6 +709,28 @@ export const leaveActivity = asyncHandler(
         $pull: { participants: userId }
       }
     );
+
+    // Notify the user who left
+    await sendNotification({
+      recipient: userId,
+      sender: userId,
+      type: "ACTIVITY_LEFT_SELF",
+      message: `You left the activity: ${activity.title}`,
+      link: `/activity/${id}`,
+      relatedId: id,
+    });
+
+    // Notify the activity creator
+    if (activity.createdBy.toString() !== userId.toString()) {
+      await sendNotification({
+        recipient: activity.createdBy,
+        sender: userId,
+        type: "ACTIVITY_LEFT",
+        message: `${req.user.name} left your activity: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
+    }
 
     //Response
     return res.status(200).json(
@@ -851,6 +922,18 @@ export const inviteUsers = asyncHandler(
       { new: true }
     );
 
+    // Notify each invited user
+    for (const invitedUserId of userIds) {
+      await sendNotification({
+        recipient: invitedUserId,
+        sender: creatorId,
+        type: "ACTIVITY_INVITE",
+        message: `${req.user.name} invited you to join: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
+    }
+
     //Response
     return res.status(200).json(
       new ApiResponse(
@@ -922,12 +1005,42 @@ export const respondToInvite = asyncHandler(
         {
           $addToSet: { participants: userId }
         }
-      )
+      );
+
+      // Notify the user who accepted
+      await sendNotification({
+        recipient: userId,
+        sender: userId,
+        type: "ACTIVITY_INVITE_ACCEPTED_SELF",
+        message: `You accepted the invite to: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
+
+      // Notify the activity creator
+      await sendNotification({
+        recipient: activity.createdBy,
+        sender: userId,
+        type: "ACTIVITY_INVITE_ACCEPTED",
+        message: `${req.user.name} accepted your invite to: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
     } else {
       await Activity.findByIdAndUpdate(
         { _id: id, "invitedUsers.userId": userId },
         { $set: { "invitedUsers.$.status": "Rejected" } }
       );
+
+      // Notify the activity creator about rejection
+      await sendNotification({
+        recipient: activity.createdBy,
+        sender: userId,
+        type: "ACTIVITY_INVITE_REJECTED",
+        message: `${req.user.name} declined your invite to: ${activity.title}`,
+        link: `/activity/${id}`,
+        relatedId: id,
+      });
     }
 
     //Response

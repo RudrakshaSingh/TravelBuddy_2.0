@@ -385,20 +385,27 @@ const articleSlice = createSlice({
       // Toggle Like
       .addCase(toggleArticleLike.fulfilled, (state, action) => {
         const { id, data } = action.payload;
+        const updatedArticle = data.article;
 
-        // Update in articles array
-        state.articles = state.articles.map(article =>
-          article._id === id ? { ...article, ...data } : article
-        );
+        if (updatedArticle) {
+          // Update in articles array
+          state.articles = state.articles.map(article =>
+            article._id === id ? { ...article, likes: updatedArticle.likes, likesCount: updatedArticle.likesCount } : article
+          );
 
-        // Update in myArticles array
-        state.myArticles = state.myArticles.map(article =>
-          article._id === id ? { ...article, ...data } : article
-        );
+          // Update in myArticles array
+          state.myArticles = state.myArticles.map(article =>
+            article._id === id ? { ...article, likes: updatedArticle.likes, likesCount: updatedArticle.likesCount } : article
+          );
 
-        // Update currentArticle if it's the same
-        if (state.currentArticle?._id === id) {
-          state.currentArticle = { ...state.currentArticle, ...data };
+          // Update currentArticle if it's the same
+          if (state.currentArticle?._id === id) {
+            state.currentArticle = {
+              ...state.currentArticle,
+              likes: updatedArticle.likes,
+              likesCount: updatedArticle.likesCount
+            };
+          }
         }
       })
 
@@ -469,20 +476,24 @@ const articleSlice = createSlice({
       // Increment Share
       .addCase(incrementArticleShare.fulfilled, (state, action) => {
         const { id, data } = action.payload;
+        // data is the full updated article object
+        const shares = data?.shares ?? (data?.article?.shares);
 
-        // Update in articles array
-        state.articles = state.articles.map(article =>
-          article._id === id ? { ...article, shares: data.shares } : article
-        );
+        if (shares !== undefined) {
+          // Update in articles array
+          state.articles = state.articles.map(article =>
+            article._id === id ? { ...article, shares } : article
+          );
 
-        // Update in myArticles array
-        state.myArticles = state.myArticles.map(article =>
-          article._id === id ? { ...article, shares: data.shares } : article
-        );
+          // Update in myArticles array
+          state.myArticles = state.myArticles.map(article =>
+            article._id === id ? { ...article, shares } : article
+          );
 
-        // Update currentArticle if it's the same
-        if (state.currentArticle?._id === id) {
-          state.currentArticle = { ...state.currentArticle, shares: data.shares };
+          // Update currentArticle if it's the same
+          if (state.currentArticle?._id === id) {
+            state.currentArticle = { ...state.currentArticle, shares };
+          }
         }
       });
   },

@@ -23,7 +23,7 @@ export interface IActivity extends Document {
 
   date: Date;
   startTime?: Date;
-  endTime?: Date;
+  endDate?: Date;
 
   location?: IGeoPoint;
 
