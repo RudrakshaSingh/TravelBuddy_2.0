@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { useGoogleMaps } from '../../context/GoogleMapsContext';
@@ -64,6 +64,9 @@ export default function ProfilePage() {
         fetchProfile,
         updateProfile,
     } = useUserActions();
+
+    // Get fresh activity data from userActivity slice
+    const { joinedActivities = [], createdActivities = [] } = useSelector((state) => state.userActivity);
 
     const [profile, setProfile] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -508,11 +511,11 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <PartyPopper size={14} className="text-gray-400" />
-                                <span><strong className="text-gray-700">{(profile?.JoinActivity || []).filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length}</strong> Activities joined</span>
+                                <span><strong className="text-gray-700">{joinedActivities.filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length}</strong> Activities joined</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <Sparkles size={14} className="text-gray-400" />
-                                <span><strong className="text-gray-700">{(profile?.JoinActivity || []).filter(a => a.createdBy?._id === profile?._id || a.createdBy === profile?._id).length}</strong> Activities created</span>
+                                <span><strong className="text-gray-700">{createdActivities.length}</strong> Activities created</span>
                             </div>
                         </div>
                     </div>
@@ -962,31 +965,30 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Created Activities */}
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="flex items-center gap-2 font-semibold text-gray-900">
                                     <span className="bg-purple-100 p-2 rounded-lg text-purple-600"><Sparkles size={20} /></span>
                                     Created Activities
                                 </h3>
-                                {(profile?.JoinActivity || []).filter(a => a.createdBy?._id === profile?._id || a.createdBy === profile?._id).length > 2 && (
+                                {createdActivities.length > 0 && (
                                     <button
                                         onClick={() => navigate('/my-activities')}
-                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
+                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline flex items-center gap-1"
                                     >
-                                        View All →
+                                        View All <span className="text-xs bg-orange-100 px-1.5 py-0.5 rounded-full">{createdActivities.length}</span>
                                     </button>
                                 )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {(profile?.JoinActivity || [])
-                                    .filter(activity => activity.createdBy?._id === profile?._id || activity.createdBy === profile?._id)
+                                {createdActivities
                                     .slice(0, 2)
                                     .map((activity) => (
-                                        <div key={activity._id} onClick={() => navigate(`/activity/${activity._id}`)} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow group cursor-pointer">
-                                            <div className="h-32 bg-gray-200 relative">
+                                        <div key={activity._id} onClick={() => navigate(`/activity/${activity._id}`)} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 group cursor-pointer hover:-translate-y-1">
+                                            <div className="h-32 bg-gray-200 relative overflow-hidden">
                                                 {activity.photos?.[0] ? (
-                                                    <img src={activity.photos[0]} alt={activity.title} className="w-full h-full object-cover" />
+                                                    <img src={activity.photos[0]} alt={activity.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 ) : (
                                                     <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
                                                         <Sparkles className="text-purple-300" size={32} />
@@ -997,7 +999,7 @@ export default function ProfilePage() {
                                                 </div>
                                             </div>
                                             <div className="p-4">
-                                                <h4 className="font-bold text-gray-900 truncate">{activity.title}</h4>
+                                                <h4 className="font-bold text-gray-900 truncate group-hover:text-purple-600 transition-colors">{activity.title}</h4>
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                                                     <Calendar size={12} />
                                                     <span>{activity.category || 'General'}</span>
@@ -1005,7 +1007,7 @@ export default function ProfilePage() {
                                             </div>
                                         </div>
                                     ))}
-                                {!(profile?.JoinActivity || []).filter(a => a.createdBy?._id === profile?._id || a.createdBy === profile?._id).length && (
+                                {createdActivities.length === 0 && (
                                     <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
                                         <Sparkles className="mx-auto mb-2 opacity-50" size={32} />
                                         <p>No created activities yet.</p>
@@ -1015,31 +1017,31 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Joined Activities */}
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="flex items-center gap-2 font-semibold text-gray-900">
                                     <span className="bg-orange-100 p-2 rounded-lg text-orange-600"><PartyPopper size={20} /></span>
                                     Joined Activities
                                 </h3>
-                                {(profile?.JoinActivity || []).filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length > 2 && (
+                                {joinedActivities.filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length > 0 && (
                                     <button
                                         onClick={() => navigate('/joined-activities')}
-                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
+                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline flex items-center gap-1"
                                     >
-                                        View All →
+                                        View All <span className="text-xs bg-orange-100 px-1.5 py-0.5 rounded-full">{joinedActivities.filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length}</span>
                                     </button>
                                 )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {(profile?.JoinActivity || [])
+                                {joinedActivities
                                     .filter(activity => activity.createdBy?._id !== profile?._id && activity.createdBy !== profile?._id)
                                     .slice(0, 2)
                                     .map((activity) => (
-                                        <div key={activity._id} onClick={() => navigate(`/activity/${activity._id}`)} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow group cursor-pointer">
-                                            <div className="h-32 bg-gray-200 relative">
+                                        <div key={activity._id} onClick={() => navigate(`/activity/${activity._id}`)} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 group cursor-pointer hover:-translate-y-1">
+                                            <div className="h-32 bg-gray-200 relative overflow-hidden">
                                                 {activity.photos?.[0] ? (
-                                                    <img src={activity.photos[0]} alt={activity.title} className="w-full h-full object-cover" />
+                                                    <img src={activity.photos[0]} alt={activity.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 ) : (
                                                     <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
                                                         <PartyPopper className="text-orange-300" size={32} />
@@ -1050,7 +1052,7 @@ export default function ProfilePage() {
                                                 </div>
                                             </div>
                                             <div className="p-4">
-                                                <h4 className="font-bold text-gray-900 truncate">{activity.title}</h4>
+                                                <h4 className="font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors">{activity.title}</h4>
                                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                                                     <Calendar size={12} />
                                                     <span>{activity.category || 'General'}</span>
@@ -1058,7 +1060,7 @@ export default function ProfilePage() {
                                             </div>
                                         </div>
                                     ))}
-                                {!(profile?.JoinActivity || []).filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length && (
+                                {joinedActivities.filter(a => a.createdBy?._id !== profile?._id && a.createdBy !== profile?._id).length === 0 && (
                                     <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
                                         <PartyPopper className="mx-auto mb-2 opacity-50" size={32} />
                                         <p>No joined activities yet.</p>
