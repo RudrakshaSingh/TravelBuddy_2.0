@@ -472,6 +472,7 @@ export const getUserById = asyncHandler(
     // Build response based on privacy
     const baseProfile = {
       _id: targetUser._id,
+      clerk_id: targetUser.clerk_id,
       fullName,
       profilePicture,
       coverImage: targetUser.coverImage || '',
