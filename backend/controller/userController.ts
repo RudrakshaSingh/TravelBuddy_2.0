@@ -7,8 +7,8 @@ import { User } from "../models/userModel";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
-import { registerUserSchema, updateProfileSchema } from "../validation/userValidation";
 import { sendNotification } from "../utils/notificationUtil";
+import { registerUserSchema, updateProfileSchema } from "../validation/userValidation";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
