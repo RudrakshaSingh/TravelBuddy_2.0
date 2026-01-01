@@ -12,8 +12,26 @@ const userSocketMap: UserSocketMap = {}; // userId -> socketId
 export const initializeSocket = (server: HttpServer) => {
     io = new Server(server, {
         cors: {
-            origin: [process.env.FRONTEND_URL as string],
+            origin: (origin, callback) => {
+                const allowedOrigins = [
+                    process.env.FRONTEND_URL,
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                ].filter(Boolean) as string[];
+
+                if (
+                    !origin ||
+                    allowedOrigins.includes(origin) ||
+                    origin.endsWith(".vercel.app") // Allow Vercel deployments automatically
+                ) {
+                    callback(null, true);
+                } else {
+                    console.log("Socket.io blocked by CORS:", origin);
+                    callback(new Error("Not allowed by CORS"));
+                }
+            },
             methods: ["GET", "POST"],
+            credentials: true,
         },
     });
 
