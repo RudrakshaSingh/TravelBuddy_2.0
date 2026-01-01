@@ -27,6 +27,7 @@ export const CallProvider = ({ children }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [remoteUser, setRemoteUser] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
 
   const [callType, setCallType] = useState('audio'); // 'audio' or 'video'
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -144,6 +145,7 @@ export const CallProvider = ({ children }) => {
     setCallEnded(false);
     setCallDuration(0);
     setRemoteUser(null);
+    setRemoteStream(null);
     setCallType('audio');
     setIsVideoEnabled(true);
     answerProcessedRef.current = false;
@@ -191,6 +193,7 @@ export const CallProvider = ({ children }) => {
       };
 
       peer.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
         if (userVideo.current) {
           userVideo.current.srcObject = event.streams[0];
         }
@@ -370,7 +373,8 @@ export const CallProvider = ({ children }) => {
         }
       },
       callType,
-      isVideoEnabled
+      isVideoEnabled,
+      remoteStream
     }}>
       {children}
     </CallContext.Provider>

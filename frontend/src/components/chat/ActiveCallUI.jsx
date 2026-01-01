@@ -1,4 +1,5 @@
 import { Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react';
+import { useEffect } from 'react';
 import { useCall } from '../../context/CallContext';
 
 const ActiveCallUI = ({
@@ -15,9 +16,22 @@ const ActiveCallUI = ({
   userVideoRef,
   callType,
   toggleVideo,
-  isVideoEnabled
+  isVideoEnabled,
+  stream,
+  remoteStream
 }) => {
   if ((!callAccepted && !isCalling) || callEnded) return null;
+
+  useEffect(() => {
+    if (callType === 'video') {
+      if (myVideoRef.current && stream) {
+        myVideoRef.current.srcObject = stream;
+      }
+      if (userVideoRef.current && remoteStream) {
+        userVideoRef.current.srcObject = remoteStream;
+      }
+    }
+  }, [callType, stream, remoteStream, myVideoRef, userVideoRef]);
 
   const formatDuration = (seconds) => {
     const min = Math.floor(seconds / 60);
