@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, FileText, Calendar, MapPin, TrendingUp, ArrowUpRight } from 'lucide-react';
+import { Users, FileText, Calendar, MapPin, ArrowUp, ArrowDown } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { getDashboardStats } from '../services/api';
 
@@ -24,81 +24,96 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="w-6 h-6 border-2 border-zinc-600 border-t-zinc-200 rounded-full animate-spin" />
       </div>
     );
   }
 
-  const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444'];
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444']; // Indigo, Emerald, Amber, Red
 
   const statCards = [
-    { label: 'Total Users', value: stats?.stats?.totalUsers || 0, icon: Users, color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-500/10' },
-    { label: 'Total Posts', value: stats?.stats?.totalPosts || 0, icon: FileText, color: 'from-green-500 to-emerald-500', bg: 'bg-green-500/10' },
-    { label: 'Activities', value: stats?.stats?.totalActivities || 0, icon: Calendar, color: 'from-amber-500 to-orange-500', bg: 'bg-amber-500/10' },
-    { label: 'Local Guides', value: stats?.stats?.totalGuides || 0, icon: MapPin, color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-500/10' },
+    { label: 'Total Users', value: stats?.stats?.totalUsers || 0, icon: Users, change: '+12%', trend: 'up' },
+    { label: 'Total Posts', value: stats?.stats?.totalPosts || 0, icon: FileText, change: '+5%', trend: 'up' },
+    { label: 'Activities', value: stats?.stats?.totalActivities || 0, icon: Calendar, change: '-2%', trend: 'down' },
+    { label: 'Local Guides', value: stats?.stats?.totalGuides || 0, icon: MapPin, change: '0%', trend: 'neutral' },
   ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-zinc-500 mt-1">Welcome back! Here's what's happening.</p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-green-400 text-sm font-medium">Live Data</span>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="space-y-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
           <div 
             key={index} 
-            className="bg-[#16162a]/60 backdrop-blur-sm border border-white/5 rounded-2xl p-6 hover:border-white/10 hover:-translate-y-1 transition-all duration-300 group"
+            className="group p-5 bg-[#09090b] border border-[#27272a] rounded-lg hover:border-zinc-700 transition-colors"
           >
-            <div className="flex items-start justify-between">
-              <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
-                <stat.icon className={`w-6 h-6 bg-gradient-to-r ${stat.color} bg-clip-text`} style={{ color: COLORS[index] }} />
-              </div>
-              <ArrowUpRight className="w-5 h-5 text-zinc-600 group-hover:text-indigo-400 transition-colors" />
+            <div className="flex items-center justify-between mb-4">
+              <span className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 group-hover:text-white transition-colors">
+                <stat.icon className="w-4 h-4" />
+              </span>
+              <span className={`text-xs font-medium flex items-center gap-1 ${
+                stat.trend === 'up' ? 'text-emerald-500' : 
+                stat.trend === 'down' ? 'text-red-500' : 'text-zinc-500'
+              }`}>
+                {stat.trend === 'up' ? <ArrowUp className="w-3 h-3" /> : stat.trend === 'down' ? <ArrowDown className="w-3 h-3" /> : null}
+                {stat.change}
+              </span>
             </div>
-            <div className="mt-4">
-              <h3 className="text-3xl font-bold text-white">{stat.value.toLocaleString()}</h3>
-              <p className="text-zinc-500 text-sm mt-1">{stat.label}</p>
+            <div>
+              <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
+              <h3 className="text-2xl font-semibold text-white mt-1 tracking-tight">{stat.value.toLocaleString()}</h3>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* User Growth Chart */}
-        <div className="bg-[#16162a]/60 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">User Growth</h3>
-          <div className="h-72">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* User Growth Chart - Spans 2 columns */}
+        <div className="lg:col-span-2 p-6 bg-[#09090b] border border-[#27272a] rounded-lg">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-semibold text-white">User Growth</h3>
+            <select className="bg-zinc-900 border border-zinc-800 text-xs text-zinc-400 rounded px-2 py-1 outline-none focus:border-zinc-700">
+              <option>Last 6 months</option>
+              <option>Last year</option>
+            </select>
+          </div>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.userGrowth || []}>
                 <defs>
                   <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#52525b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#52525b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  dx={-10}
+                />
                 <Tooltip 
                   contentStyle={{ 
-                    background: '#1e1e3f', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+                    background: '#09090b', 
+                    border: '1px solid #27272a',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+                    fontSize: '12px'
                   }}
-                  labelStyle={{ color: '#fff' }}
+                  itemStyle={{ color: '#e4e4e7' }}
+                  labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
                 />
                 <Area 
                   type="monotone" 
@@ -113,20 +128,22 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Content Distribution */}
-        <div className="bg-[#16162a]/60 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Content Distribution</h3>
-          <div className="h-72 flex items-center justify-center">
+        {/* Content Distribution - Spans 1 column */}
+        <div className="p-6 bg-[#09090b] border border-[#27272a] rounded-lg flex flex-col">
+          <h3 className="text-sm font-semibold text-white mb-2">Content Distribution</h3>
+          <p className="text-xs text-zinc-500 mb-6">Breakdown of platform content types</p>
+          <div className="flex-1 min-h-[200px] flex items-center justify-center relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats?.contentDistribution || []}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
+                  innerRadius={60}
+                  outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
+                  stroke="none"
                 >
                   {(stats?.contentDistribution || []).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -134,57 +151,77 @@ const Dashboard = () => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    background: '#1e1e3f', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px'
+                    background: '#09090b', 
+                    border: '1px solid #27272a',
+                    borderRadius: '6px',
+                    fontSize: '12px'
                   }}
+                  itemStyle={{ color: '#e4e4e7' }}
                 />
               </PieChart>
             </ResponsiveContainer>
+            {/* Center Text */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <span className="block text-2xl font-bold text-white">
+                  {(stats?.contentDistribution || []).reduce((acc, curr) => acc + curr.value, 0)}
+                </span>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Total</span>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-center gap-6 -mt-4">
+          <div className="mt-6 space-y-3">
             {(stats?.contentDistribution || []).map((item, index) => (
-              <div key={item.name} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ background: COLORS[index] }} />
-                <span className="text-sm text-zinc-400">{item.name}</span>
+              <div key={item.name} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ background: COLORS[index] }} />
+                  <span className="text-zinc-400">{item.name}</span>
+                </div>
+                <span className="font-medium text-white">{item.value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Recent Users */}
-      <div className="bg-[#16162a]/60 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white">Recent Users</h3>
-          <a href="/users" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">View all →</a>
+      {/* Recent Users Table */}
+      <div className="border border-[#27272a] rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between bg-[#09090b]">
+          <h3 className="text-sm font-semibold text-white">Recent Signups</h3>
+          <button className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">View All Users</button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left py-3 px-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">User</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Email</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Joined</th>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[#09090b] text-zinc-500 font-medium border-b border-[#27272a]">
+              <tr>
+                <th className="px-6 py-3 font-medium">User Details</th>
+                <th className="px-6 py-3 font-medium">Email</th>
+                <th className="px-6 py-3 font-medium">Joined Date</th>
+                <th className="px-6 py-3 font-medium text-right">Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#27272a] bg-[#09090b]">
               {(stats?.recentUsers || []).map((user) => (
-                <tr key={user._id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-4">
+                <tr key={user._id} className="hover:bg-[#27272a]/30 transition-colors group">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {user.profileImage ? (
-                        <img src={user.profileImage} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                        <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent group-hover:ring-zinc-800 transition-all" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-semibold text-zinc-400">
                           {user.name?.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-medium text-white">{user.name}</span>
+                      <span className="font-medium text-zinc-200 group-hover:text-white transition-colors">{user.name}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-zinc-400">{user.email}</td>
-                  <td className="py-4 px-4 text-zinc-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-zinc-500 font-mono text-xs">{user.email}</td>
+                  <td className="px-6 py-4 text-zinc-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-emerald-500/10 text-emerald-500 text-[11px] font-medium border border-emerald-500/20">
+                      Active
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

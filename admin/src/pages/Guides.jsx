@@ -46,117 +46,115 @@ const Guides = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-zinc-600 border-t-zinc-200 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Local Guides</h1>
-          <p className="text-zinc-500 mt-1">{pagination.total} registered guides</p>
+          <h1 className="text-xl font-semibold text-white">Local Guides</h1>
+          <p className="text-sm text-zinc-500 mt-1">Manage guide verification and status</p>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-[#16162a]/60 backdrop-blur-sm border border-white/5 rounded-2xl overflow-hidden">
+      {/* Data Table */}
+      <div className="border border-[#27272a] rounded-lg overflow-hidden bg-[#09090b]">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#1e1e3f]">
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Guide</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Location</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Price/Day</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Rating</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Actions</th>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[#09090b] text-zinc-500 font-medium border-b border-[#27272a]">
+              <tr>
+                <th className="px-6 py-3 font-medium">Guide Profile</th>
+                <th className="px-6 py-3 font-medium">Location</th>
+                <th className="px-6 py-3 font-medium">Pricing</th>
+                <th className="px-6 py-3 font-medium">Rating</th>
+                <th className="px-6 py-3 font-medium">Status</th>
+                <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#27272a]">
               {guides.map((guide) => (
-                <tr key={guide._id} className="border-t border-white/5 hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-6">
+                <tr key={guide._id} className="hover:bg-[#27272a]/30 transition-colors group">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {guide.user?.profileImage ? (
-                        <img src={guide.user.profileImage} alt={guide.user.name} className="w-10 h-10 rounded-full object-cover" />
+                        <img src={guide.user.profileImage} alt={guide.user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent group-hover:ring-zinc-800 transition-all" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-semibold text-zinc-400">
                           {guide.user?.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                       )}
                       <div>
-                        <p className="font-medium text-white">{guide.user?.name || 'Unknown'}</p>
-                        <p className="text-sm text-zinc-500">{guide.user?.email}</p>
+                        <p className="font-medium text-zinc-200 group-hover:text-white transition-colors">{guide.user?.name || 'Unknown'}</p>
+                        <p className="text-xs text-zinc-500">{guide.user?.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
-                      <MapPin className="w-4 h-4" />
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5 text-zinc-400 text-xs">
+                      <MapPin className="w-3.5 h-3.5" />
                       {guide.city}
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="font-semibold text-white">₹{guide.pricePerDay?.toLocaleString()}</span>
+                  <td className="px-6 py-4 font-mono text-zinc-300">
+                    ₹{guide.pricePerDay?.toLocaleString()}<span className="text-zinc-600">/day</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
-                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                      <span className="text-white">{guide.averageRating?.toFixed(1) || '0.0'}</span>
-                      <span className="text-zinc-500 text-sm">({guide.totalReviews || 0})</span>
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                      <span className="text-zinc-200 font-medium">{guide.averageRating?.toFixed(1) || '0.0'}</span>
+                      <span className="text-zinc-600 text-xs">({guide.totalReviews || 0})</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                         guide.isVerified 
-                          ? 'bg-green-500/10 text-green-400' 
-                          : 'bg-amber-500/10 text-amber-400'
+                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                       }`}>
                         {guide.isVerified ? 'Verified' : 'Pending'}
                       </span>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        guide.isActive 
-                          ? 'bg-blue-500/10 text-blue-400' 
-                          : 'bg-red-500/10 text-red-400'
-                      }`}>
-                        {guide.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                      {!guide.isActive && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] font-medium border border-red-500/20">
+                          Inactive
+                        </span>
+                      )}
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       {!guide.isVerified ? (
                         <button 
                           onClick={() => handleVerify(guide._id, true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-400 rounded-lg text-xs font-medium hover:bg-green-500/20 transition-all"
+                          className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded hover:bg-emerald-500/20 transition-colors text-xs"
+                          title="Verify Guide"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          Verify
+                          <CheckCircle className="w-3 h-3" /> Verify
                         </button>
                       ) : (
                         <button 
                           onClick={() => handleVerify(guide._id, false)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-500/10 text-zinc-400 rounded-lg text-xs font-medium hover:bg-zinc-500/20 transition-all"
+                          className="p-1.5 text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors"
+                          title="Unverify Guide"
                         >
-                          <XCircle className="w-3.5 h-3.5" />
-                          Unverify
+                          <XCircle className="w-4 h-4" />
                         </button>
                       )}
                       <button 
                         onClick={() => handleToggleStatus(guide._id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        className={`p-1.5 rounded transition-colors ${
                           guide.isActive 
-                            ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' 
-                            : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                            ? 'text-zinc-400 hover:text-red-400 hover:bg-red-500/10' 
+                            : 'text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10'
                         }`}
+                        title={guide.isActive ? 'Deactivate' : 'Activate'}
                       >
-                        <Power className="w-3.5 h-3.5" />
-                        {guide.isActive ? 'Disable' : 'Enable'}
+                        <Power className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -167,34 +165,26 @@ const Guides = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 py-6 border-t border-white/5">
-          <button 
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-zinc-400 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            disabled={pagination.page === 1}
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${
-                pagination.page === page
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-white/5 text-zinc-400 hover:bg-white/10'
-              }`}
-              onClick={() => setPagination(prev => ({ ...prev, page }))}
+        <div className="px-6 py-4 border-t border-[#27272a] flex items-center justify-between">
+          <p className="text-xs text-zinc-500">
+            Page <span className="font-medium text-zinc-300">{pagination.page}</span> of <span className="font-medium text-zinc-300">{pagination.pages}</span>
+          </p>
+          <div className="flex items-center gap-1">
+            <button 
+              className="p-1.5 rounded border border-[#27272a] text-zinc-500 hover:text-white hover:bg-[#27272a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={pagination.page === 1}
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
             >
-              {page}
+              <ChevronLeft className="w-4 h-4" />
             </button>
-          ))}
-          <button 
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-zinc-400 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            disabled={pagination.page === pagination.pages}
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+            <button 
+              className="p-1.5 rounded border border-[#27272a] text-zinc-500 hover:text-white hover:bg-[#27272a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={pagination.page === pagination.pages}
+              onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
